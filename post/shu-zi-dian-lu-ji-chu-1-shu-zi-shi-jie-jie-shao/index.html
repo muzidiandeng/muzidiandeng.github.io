@@ -1,0 +1,208 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>数字电路基础(1)——数字世界介绍 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    数字电路基础(1)——数字世界介绍
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-06-05 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-ying-jian-kai-fa-shu-zi-ji-cheng-dian-lu-shu-zi-luo-ji/" class="post-tags">
+                            # 嵌入式-硬件开发-数字集成电路-数字逻辑
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <blockquote>
+<p>本篇是新开章节&quot;数字世界&quot;的开篇介绍，这个大章的博客们主要是介绍数字电路的基础知识。写它们的原因是在介绍单片机的过程中，发现如果假设读者们完全没有了解过数字电路，有些东西很难只言片语介绍清楚，所以干脆就在这里专门讲一讲。这里的很多东西是按照阎石的《数字电子技术基础》教材介绍的，为了避免枯燥，我尽量按照先展示现象后剖析原理的顺序进行，过程中难免大量精简和未言尽的地方，不懂的大家可以详细参考这本教材。</p>
+</blockquote>
+<h1 id="学会数字思维进入数字世界">学会数字思维，进入数字世界</h1>
+<p>什么是数字量、什么是数字电路，这一切都要先从自然界的模拟思维转变到数字思维说起。一般书面的说法是自然界存在的连续变化的事物是模拟量，比如我们感知到冷热酸甜，从赤道到南极，我们感受到的不同温度就是连续变化的，不存在从一个量瞬间变化到另一个量的情况，即使你把一块冻的硬邦邦的肉一下子丢进滚烫的岩浆，它的温度也是从零下逐渐变到零上直至开始燃烧，只不过这个过程可以很快而已。</p>
+<p>和自然界连续变化的模拟量相对的就是我们的数字量，数字量是不是人类文明独创的呢？不是的，自然界也有数字量，比如一头牛、两头牛、三头牛等等，人类只不过创造了头、只、个等量词来描述它们。一头牛变成两头牛是跳变的，不存在1.5头牛（不要跟我杠拿刀劈一半什么的），这种不可连续变化的量就是数字量。</p>
+<p>对于都会数数的我们来说，理解一只两只这样的数字量来说是不是太简单了，大家都懂，那为什么我们还是会对数字电路里的概念感觉到迷茫呢？那是因为这里面涉及到进制的问题，我们从生下来就开始学数数，先从一数到10，然后再从十数到一百，慢慢学会之后可以数千、万、亿等，我们接触到的，大部分都是10进制的，而电路的世界中，我们大部分是二进制的，要么是0要么是1，这么一长串01组合起来，我们这种不经常打交道的人理解起来就晕圈了。</p>
+<p>我拿了数字世界作为本章的标题，就是想通过一篇篇的博客让大家培养一种数字思维，理解数字电路的工作模式和原理，而了解并熟悉二进制就是数字逻辑的第一课，不过光会数数可不够，我还要告诉你们门电路、数字电路、大规模集成电路等等，一步一步介绍怎么从会掰指头数数的娃娃变成会做应用题的初中生，至于想变成大学生，还需要学好多好多东西，慢慢来吧，教不教的动我也不知道呢。</p>
+<hr>
+<p>那下面，我们就开始我们这个系列博客的第一集：《数字电路基础(2)——数的进制》，首先你得有点“B”数之认识数的进制。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/tong-yong-shu-zi-lu-bo-suan-fa/" class="post-title gt-a-link">
+                    通用数字滤波算法
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/shu-zi-dian-lu-ji-chu-1-shu-zi-shi-jie-jie-shao/" class="leancloud_visitors" data-flag-title="数字电路基础(1)——数字世界介绍">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

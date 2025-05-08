@@ -1,0 +1,225 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>数字电路基础(5)——CMOS基本电路 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    数字电路基础(5)——CMOS基本电路
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-06-10 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-ying-jian-kai-fa-shu-zi-ji-cheng-dian-lu-ji-ben-men-dian-lu/" class="post-tags">
+                            # 嵌入式-硬件开发-数字集成电路-基本门电路
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <blockquote>
+<p>上文《数字电路基础——逻辑门电路》介绍了CMOS门电路的发展历史和基本构造，本节来看CMOS基本电路的种类和特点，以及实际芯片的介绍和选型。</p>
+</blockquote>
+<h1 id="cmos基本电路">CMOS基本电路</h1>
+<p>这一部分在教材上，不仅讲了各种门电路是怎么样的，还讲了很复杂的静态、动态工作状态分析，还有各个工作点电压电流的计算等，个人觉得没有必要写在这里。这下面就讲这么一些东西吧：</p>
+<ul>
+<li>与或非以及与非、或非等基本逻辑门电路的CMOS实现</li>
+<li>以非门为例，介绍逻辑电路中普遍存在的传输延时现象</li>
+<li>学会使用TINA观察逻辑门电路的动态与静态特性</li>
+<li>开漏和推挽输出</li>
+<li>传输门、三态门</li>
+<li>常见CMOS分立元件实物介绍、特点、选型推荐</li>
+</ul>
+<h2 id="cmos逻辑门电路实现">CMOS逻辑门电路实现</h2>
+<p>CMOS逻辑门中，非门是最简单的一种，下面就从非门开始介绍，并且描述怎么去观察数字电路的动态和静态传输特性，数字电路需要关注的问题等。后面几种与非门、或非门什么的，只需要给出电路图，大家按照非门的方法自己就会分析他们的各项特性了。</p>
+<p>一个最简单的CMOS非门(反相器)的电路如下：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_inverter.png" alt="digit_course_cmos_inverter" loading="lazy"></figure>
+<p>红框内是反相器，示波器中红色的是输入，绿色的是输出，输入输出正好是反过来的。反相器仅仅由一个NMOS和一个PMOS组成，当输入是高电平时，下面的NMOS导通而上面的PMOS不导通，所以输出通过NMOS接地为低电平。当输入为低时，下面的NMOS截止而上面的PMOS导通，输出接到高电平为高。</p>
+<p>类似的，与非门的电路图如下：</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_andnot.png" alt="digit_course_cmos_andnot" loading="lazy"></figure>
+<p>红框里面的是与非门，看看示波器里面VF1 VF2输入和输出VF3的关系，是不是就是与非。</p>
+<p>或非门的电路图如下：</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_ornot.png" alt="digit_course_cmos_ornot" loading="lazy"></figure>
+<p>同样，观察示波器输出，可以看出来这是VF1 VF2与VF3是一个或非的关系。</p>
+<h2 id="cmos逻辑门的传输特性">CMOS逻辑门的传输特性</h2>
+<p>首先解释下传输特性是个啥意思，上面的电路图和示波器的波形图，描述的都是静态场景下的逻辑关系，比如给定一个输入，看这个电路的输出是什么。本来作为嵌入式软件的开发来讲，根据这个关系知道怎么写代码去驱动数字电路就够了。但是我们的电路就像CPU里面一样，是在不停运算不停变化的，在输入的信号极快速变化的时候，会因为CMOS的传输特性出现我们意料之外的情况导致电路无法正常工作。所以我个人认为还有有必要描述下这一章，帮助大家深入理解我们代码中配置超高的CPU频率，对电路来说意味着什么。</p>
+<p>那么，我们就开始《数字电路基础(6)——CMOS的动态特性》，告诉你什么是动态特性，怎么观察动态特性。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-4-luo-ji-men-dian-lu/" class="post-title gt-a-link">
+                    数字电路基础(4)——逻辑门电路
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/shu-zi-dian-lu-ji-chu-5-cmos-ji-ben-dian-lu/" class="leancloud_visitors" data-flag-title="数字电路基础(5)——CMOS基本电路">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

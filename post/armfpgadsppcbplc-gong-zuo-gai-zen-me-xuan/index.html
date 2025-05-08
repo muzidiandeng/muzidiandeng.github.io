@@ -1,0 +1,208 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>ARM、FPGA、DSP、PCB、PLC工作该怎么选 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    ARM、FPGA、DSP、PCB、PLC工作该怎么选
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-05-23 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-gong-zuo-gan-xiang/" class="post-tags">
+                            # 嵌入式-工作感想
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <blockquote>
+<p>每次学弟学妹问这类问题我都会问他们自己的兴趣喜欢什么，清楚自己兴趣爱好甚至理想是一件很难得的事情。抛开个人爱好讨论的话，这里列举的其实是两大类完全不同的方向，建议大家了解之后再好好选择。</p>
+</blockquote>
+<hr>
+<p>第一类是偏软件的ARM，DSP，FPGA，这类实习生在招聘的时候，我们一般归类到嵌入式软件开发或者通用软件开发，因为这三类岗位，以后正式工作的时候，一般都与硬件、电路接触的不多，主要的工作形式还是在电脑上编写对应平台上的软件，一般比较少天天调板子、焊电路。(虽然这三个是嵌入式的软件，但是大厂一般会提供对应芯片的完善的仿真平台，除了单板驱动开发人员其他的还是主要都在软件平台上开发)这三个之间具体来比较的话，个人认为目前流行度：ARM&gt;FPGA&gt;DSP。</p>
+<ol>
+<li>ARM的岗位最多，因为ARM上运行的软件各式各样，像我们开发的软件，其实是网络拓扑算法，可以运行在ARM、PowerPC、X86上，按理说我们和ARM关系不大，但是我们团队依然会比较喜欢懂ARM的开发人员，能够优化算法在特定平台上的性能。各行各业例如互联网、智能家居、医疗等，也有很多ARM相关的岗位，所以ARM最流行是因为ARM的生态好，从业者可以找到更多的岗位，对以后跳槽或者调整发展方向来说也更方便。</li>
+<li>FPGA方向的话则一般偏向于集成电路设计与数字验证，大家要看看自己在学校学习集成电路设计、数字电路这两门课的时候有没有感觉。从我的了解看，FPGA主要可以干两大类事情，一类是做高速逻辑处理、信号采集等等，这是FPGA架构相对于CPU的天然优势，比如几乎所有的大型通信产品中，都有FPGA的使用，处理什么路由表转发、信号帧格式转换啥的只有FPGA这种搞得定。还有示波器、频谱仪什么的，也都有FPGA的应用。另一类就是在芯片研发领域，做仿真、IP开发、芯片验证等等岗位会需要你会FPGA，我实验室几个同学学FPGA，一个在海思做芯片开发，一个在全志作芯片验证。总的来说，随着Altera和xilinx这两大FPGA厂商分别被Intel和AMD这两个CPU大佬收购，说明业界对FPGA的信心也越来越足。这类工作的主要形式还是在电脑上编写Verilog和VHDL代码，但是从领域上来说跟数字电路比较紧密，没有ARM那么广。</li>
+<li>DSP的话个人则不太推荐，因为DSP在业界越来越受质疑，DSP的长处是数字信号处理，但是现在ARM的主频越来越高，FPGA也有很多现成的数字信号处理IP核，DSP不可替代的领域也越来越少。另外，除了传统的信号处理算法以外，业界现在算法开发人员，越来越多的向AI、机器学习等领域扎堆，带有AI芯片或者NPU的芯片逐渐成为主流，瑞芯微、全志等芯片厂商，也开始放弃集成DSP，换成集成NPU，现有的DSP，可能主要就是传统大佬德州仪器还在发扬光大了。大家也可以自己观察下，DSP的岗位是不是相对来说最少的。</li>
+</ol>
+<hr>
+<p>第二类是大家说的PCB和PLC两类，这两类个人认为算纯硬件类，和软件基本没有什么关系，流行度：PCB&gt;PLC.</p>
+<ol>
+<li>PCB的话无非是画原理图和PCB布局两部分，这两个大厂里面甚至是两波人干的，大家一般熟知的是其他帖子提到的PCB layout工程师。这个领域怎么说呢？其实跟硬件一样非常吃经验的，发展好在高速信号、EMC、电路等领域也非常需要经验，也是非常稀缺的人才，但是也需要你积极学习，理论知识扎实。别看你不用去直接接触硬件，但是你需要懂各种硬件知识。虽然大家说集成电路的发展逐渐压缩了PCB的发展空间，但是集成度增高同时信号频率的提高也同时加大了对PCB工程师的要求。选择这个方向，和编码没有关系，大家主要注意和前面那三个区分，以后的发展方向的话，也基本不可能对转到软件领域有太大帮助。</li>
+<li>PLC基本是工业领域使用的，虽然我自己并没有从事过相关领域的学习和工作，但是从我的理解看从事PLC除非在ABB，西门子，施耐德这些PLC原厂工作，国内基本没什么发展。PLC这领域因为工厂啥的需要极高的可靠性，一般都直接选择国际大厂，它们形成了极高的壁垒。行业不好发展，个人也很难有什么突破，薪资也比较容易有天花板。</li>
+</ol>
+<p>介绍这么多主要是给大家描述下各个方向工作的区别，还是要看你自己的兴趣，你是找实习又不是找工作，允许你有试错的机会，感兴趣的方向不合适可以及时换到别的方向。如果你实在不清楚比较迷茫，可以参考下网上各种帖子的回答。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+
+        
+            <span id="/post/armfpgadsppcbplc-gong-zuo-gai-zen-me-xuan/" class="leancloud_visitors" data-flag-title="ARM、FPGA、DSP、PCB、PLC工作该怎么选">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

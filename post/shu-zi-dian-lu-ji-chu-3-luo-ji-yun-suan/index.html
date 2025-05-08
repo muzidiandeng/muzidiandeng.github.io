@@ -1,0 +1,249 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>数字电路基础(3)——逻辑运算 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    数字电路基础(3)——逻辑运算
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-06-07 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-ying-jian-kai-fa-shu-zi-ji-cheng-dian-lu-shu-zi-luo-ji/" class="post-tags">
+                            # 嵌入式-硬件开发-数字集成电路-数字逻辑
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <blockquote>
+<p>上一节我们教识数了，这一节我们怎么也得来个1+1吧？</p>
+</blockquote>
+<p>别慌，这一节我们不是给你讲二进制的1b+1b=10b这种东西，这个你上节就能自己悟出来了，这里炒现饭的话就太无聊了，我这里要说的是如果你是麦兜，你要买粗面，必须还得加鱼丸，老板却告诉你有粗面没有鱼丸，你要不要买的问题。</p>
+<h1 id="几种基本逻辑运算">几种基本逻辑运算</h1>
+<p>上面麦兜的答案，你是不是一下子就知道买不了，这就是生活中最简单的一种逻辑运算，你肯定还碰到下面这几种场景：</p>
+<ul>
+<li>麦兜买面，必须要粗面和鱼丸</li>
+<li>麦兜买面，有鱼丸或者粗面都行</li>
+<li>麦兜买面，就是不能放香菜，鱼不鱼丸，粗不粗面的无所谓了</li>
+</ul>
+<p>上面这三种场景，对应的就是与运算，A和B必须同时成立才为真，否则为假；或运算，只要A或者B只成立一个即可；非运算，只要A不为真就行。教科书上，喜欢给各种东西用符号来表示并发明一个运算式表示，所以上面的三种运算，书上写的运算是这样的：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/digit_course_basic_logic_calc.png" alt="digit_course_basic_logic_calc" loading="lazy"></figure>
+<p>而我,是一个程序员,C语言中，这三种逻辑运算的写法是这样的：</p>
+<pre><code>Y = A &amp;&amp; B  // 与
+Y = A || B  // 或
+Y = !A      // 非
+</code></pre>
+<p>emm，只能说各有各的剧本，各有各的唱法吧。不过作为硬件工程师，还有下面的电路图描述方法，后面我们在单片机的内部框图中，将海量的见到它们：</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/digit_course_basic_logic_gate.png" alt="digit_course_basic_logic_gate" loading="lazy"></figure>
+<p>当然，他们仨只是最基本的三种逻辑符号，我们还可以灵活组合他们，就形成了更多更复杂的门电路，例如：与非门、或非门、异或门、同或门</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/digit_course_basic_more_gate.png" alt="digit_course_basic_more_gate.png" loading="lazy"></figure>
+<p>与非门就是与门后面再叠加一个非门，在逻辑上也就是他们俩的叠加，先与然后取反。或非门同理。重点说的是XOR异或门和XNOR同或门。异或是指两个输入相同时，输出为0，两个不一样时，输出为1，所以叫“异”或，同或则恰好相反，相同的是1，不相同的是0，所以英文名中也加了个N，变成XNOR。</p>
+<h1 id="几种基本的逻辑公式">几种基本的逻辑公式</h1>
+<p>教科书上，逻辑公式列了十八种，其中有几个我认为是常识，大家靠猜可以理解出来我就不写了，我写几种写代码或者设计电路时常见的公式如下：</p>
+<ul>
+<li>A &amp;&amp; (B || C) = (A &amp;&amp; B) || (A &amp;&amp; C)</li>
+<li>!(A&amp;&amp;B) = (!A) || (!B)</li>
+<li>A || B &amp;&amp; C = (A || B) &amp;&amp; (A || C)</li>
+<li>!(A || B) = (!A) &amp;&amp; (!B)</li>
+</ul>
+<p>利用这些基本公式，可以推出下面的常用公式，这部分公式可以把复杂的式子化简，减少我们代码和电路的设计工作量，是一种化繁为简的好东西：</p>
+<ul>
+<li>A || A &amp;&amp; B = A</li>
+<li>A || !A &amp;&amp; B = A || B</li>
+<li>A &amp;&amp; B || A &amp;&amp; !B = A</li>
+<li>A &amp;&amp; (A || B) = A</li>
+<li>A &amp;&amp; !(A &amp;&amp; B) = A &amp;&amp; !B</li>
+<li>!A &amp;&amp; !(A &amp;&amp; B) = !A</li>
+</ul>
+<p>这些公式，我也不知道如何简洁的描述并记忆它们，理解上，如果将A和B分别换成鱼丸和粗面，也是很容易理解的。更多的时候，我在使用这些东西时，也是靠着自己的常识和理解去化简逻辑算式，好在平时并没有碰到很长的公式去化简。</p>
+<h1 id="逻辑运算的几个定理">逻辑运算的几个定理</h1>
+<ul>
+<li>算式中的A和B，可以用任何东西替换，逻辑都是成立的，可以用C替代，也可以用一个式子例如（C || D &amp;&amp; E）替代。</li>
+<li>逻辑运算中，将等式左右所有的东西都取反，式子还是成立的。A换!A,B换!B，||换&amp;&amp;，&amp;&amp;换||，例如Y = A &amp;&amp; B可以转换为!Y = !A || !B</li>
+</ul>
+<p>这个例子的理解和记忆，也是靠多写代码，多碰到需要逻辑判断的情况，熟能生巧吧。</p>
+<h1 id="逻辑运算式的化简">逻辑运算式的化简</h1>
+<p>逻辑运算式有公式法化简、卡诺图法化简、Q-M法化简，这三种我也没办法一下很浅显的弄懂，个人认为最后一种是可以使用代码实现的，化简思路清晰，有步骤可循，需要研究的同学自己参考下相关的资料吧，这里不做赘述。</p>
+<hr>
+<p>下一章《数字电路基础(4)——逻辑门电路》，我们由抽象走向具体，开始看看我们这些逻辑在电路上的具体实现载体——门电路，看看实际上看得见摸得着的逻辑门是什么样子的。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-2-shu-de-jin-zhi/" class="post-title gt-a-link">
+                    数字电路基础(2)——数的进制
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/shu-zi-dian-lu-ji-chu-3-luo-ji-yun-suan/" class="leancloud_visitors" data-flag-title="数字电路基础(3)——逻辑运算">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>荔枝派Nano编译Uboot指南 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    荔枝派Nano编译Uboot指南
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-05-25 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-di-ruan-kai-fa-linux-lichee/" class="post-tags">
+                            # 嵌入式-底软开发-Linux-lichee
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>绝大部分基本操作都是按照官方教程走就可以了，碰到了一部分问题教程没有写的，记录备忘。</p>
+<ol>
+<li>系统安装按照教程指定16.04，不过我安装的是ubuntu server版本，只安装了基本的包，可能下面部分问题跟这个有关系。</li>
+<li><code>make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- licheepi_nano_spiflash_defconfig</code>步骤，报错<code>The program 'make' can be found in the following packages:</code>，可能就是系统包太精简，<code>sudo apt-get install make</code>即可。</li>
+<li>报错<code>scripts/kconfig/lxdialog/dialog.h:26:20: fatal error: curses.h: No such file or directory</code>，解决办法<code>sudo apt-get install libncurses5-dev</code></li>
+<li><code>make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2</code>报错<code>/bin/sh: 1: python: not found</code>，解决办法<code>sudo apt-get install python</code>，默认安装的是python2.7版本</li>
+<li>继续报错<code>unable to execute 'swig': No such file or directory</code>，解决办法<code>sudo apt install swig</code></li>
+<li>继续报错<code>scripts/dtc/pylibfdt/libfdt_wrap.c:147:21: fatal error: Python.h: No such file or directory</code>，解决办法<code>sudo apt-get install python-dev</code></li>
+<li>编译烧录工具sunxi-tools的时候，报错<code>fel.c:32:18: fatal error: zlib.h: No such file or directory</code>，解决办法<code>sudo apt-get install zlib1g-dev</code></li>
+<li>继续报错<code>fel_lib.c:26:20: fatal error: libusb.h: No such file or directory</code>，官方给的<code>sudo apt-get install libusb-1.0-0-dev</code>不管用，<code>sudo apt-get install build-essential pkg-config</code>解决</li>
+</ol>
+<p>OK，解决上述问题后，编译完成</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/li-zhi-pai-nano-nei-he-bian-yi/" class="post-title gt-a-link">
+                    荔枝派Nano内核编译
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/li-zhi-pai-nano-bian-yi-uboot-zhi-nan/" class="leancloud_visitors" data-flag-title="荔枝派Nano编译Uboot指南">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

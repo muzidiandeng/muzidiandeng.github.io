@@ -1,0 +1,247 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>荔枝派Nano内核编译 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    荔枝派Nano内核编译
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-05-25 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-di-ruan-kai-fa-linux-lichee/" class="post-tags">
+                            # 嵌入式-底软开发-Linux-lichee
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>上文编译好uboot之后，想刷内核和根文件系统进去。其实官方的网盘里面，已经有打包好的系统镜像，包含所有的东西，可以直接烧录进flash或者TF卡，但是都是基于winbond芯片的，国产的xt25f128b刷进去妥妥的<code>SF: unrecognized JEDEC id bytes: 0b, 40, 18</code>。所以没办法，只能自己再动手重新编译内核了。(PS：搞的我都想直接买一片w25q128换上了，有点麻烦，希望官方直接涨价或者出两版就行，不然对新手不友好啊)</p>
+<h1 id="分区规划表">分区规划表</h1>
+<p>之前烧录uboot的命令<code>sudo sunxi-fel -p spiflash-write 0 u-boot-sunxi-with-spl.bin</code>里面，参数0是直接指定从flash的0x00000000地址开始烧录，现在我们要烧内核了，要对16M的flash做个规划了，按照官方教程的规划如下：</p>
+<table>
+<thead>
+<tr>
+<th>分区序号</th>
+<th>分区大小</th>
+<th>分区作用</th>
+<th>地址空间及分区名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mtd0</td>
+<td>1MB (0x100000)</td>
+<td>spl+uboot</td>
+<td>0x0000000-0x0100000 : “uboot”</td>
+</tr>
+<tr>
+<td>mtd1</td>
+<td>64KB (0x10000)</td>
+<td>dtb文件</td>
+<td>0x0100000-0x0110000 : “dtb”</td>
+</tr>
+<tr>
+<td>mtd2</td>
+<td>4MB (0x400000)</td>
+<td>linux内核</td>
+<td>0x0110000-0x0510000 : “kernel”</td>
+</tr>
+<tr>
+<td>mtd3</td>
+<td>剩余 (0xAF0000)</td>
+<td>根文件系统</td>
+<td>0x0510000-0x1000000 : “rootfs”</td>
+</tr>
+</tbody>
+</table>
+<p>这个其实就是大致划分了4段而已，我们照着官方教程操作就O了</p>
+<h1 id="linux内核编译">linux内核编译</h1>
+<p>官方教程地址:http://nano.lichee.pro/build_sys/kernel.html</p>
+<p>果然没这么顺利，编译过程中报错</p>
+<p><code>scripts/extract-cert.c:21:25: fatal error: openssl/bio.h: No such file or directory</code></p>
+<p>因为没安装ssl，<code>sudo apt-get install libssl-dev</code>安装</p>
+<p>继续报错<code>/bin/sh: 1: bc: not found</code>，通过<code>sudo apt install bc</code>安装</p>
+<p>编译OK，但是教程最后一句</p>
+<p>“生成的 zImage 在 arch ‣ arm ‣ boot 目录下；将其放入第一分区。”</p>
+<p>这个让人摸不着头脑，怎么放？第一分区指的是mtd2？--------其实这个指的是使用TF卡的，spi flash的看这个：http://nano.lichee.pro/build_sys/build_flash.html#id3</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/msp430-zhi-adc/" class="post-title gt-a-link">
+                    MSP430之ADC
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/li-zhi-pai-nano-nei-he-bian-yi/" class="leancloud_visitors" data-flag-title="荔枝派Nano内核编译">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>多层最短路 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    多层最短路
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2025-05-08 ·
+                    </time>
+                    
+                </div>
+                <div class="post-content">
+                    <pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;limits&gt;
+#include &lt;tuple&gt;
+#include &lt;cstdlib&gt;
+#include &lt;chrono&gt;
+#include &lt;algorithm&gt; // 用于 make_heap, push_heap, pop_heap
+#include &lt;unordered_map&gt;
+
+using namespace std;
+
+// 定义一个常量表示无穷大
+const int INF = numeric_limits&lt;int&gt;::max();
+
+// 定义一个结构体表示图中的边
+struct Edge {
+    int to;     // 目标节点
+    int cost;   // 边的代价
+};
+
+// 自定义二叉堆
+class BinaryHeap {
+public:
+    using Element = tuple&lt;int, int, int&gt;; // (当前代价, 当前层, 当前节点)
+
+    // 插入元素
+    void push(const Element&amp; element) {
+        heap.push_back(element);
+        push_heap(heap.begin(), heap.end(), compare);
+    }
+
+    // 弹出最小元素
+    void pop() {
+        pop_heap(heap.begin(), heap.end(), compare);
+        heap.pop_back();
+    }
+
+    // 获取最小元素
+    Element top() const {
+        return heap.front();
+    }
+
+    // 判断堆是否为空
+    bool empty() const {
+        return heap.empty();
+    }
+
+private:
+    vector&lt;Element&gt; heap;
+
+    // 比较函数，用于实现最小堆
+    static bool compare(const Element&amp; a, const Element&amp; b) {
+        return get&lt;0&gt;(a) &gt; get&lt;0&gt;(b); // 按代价升序排列
+    }
+};
+
+// 修改后的 Dijkstra 算法
+using InterLayerConnections = vector&lt;unordered_map&lt;int, vector&lt;pair&lt;int, int&gt;&gt;&gt;&gt;;
+
+void dijkstra(int startLayer, int startNode, const vector&lt;vector&lt;vector&lt;Edge&gt;&gt;&gt;&amp; graph,
+    const InterLayerConnections&amp; interLayerCost, vector&lt;vector&lt;int&gt;&gt;&amp; minCost) {
+    int layers = graph.size();
+    int nodes = graph[0].size();
+
+    // 自定义二叉堆，存储 (当前代价, 当前层, 当前节点)
+    BinaryHeap pq;
+
+    // 初始化最小代价数组
+    for (int i = 0; i &lt; layers; ++i) {
+        fill(minCost[i].begin(), minCost[i].end(), INF);
+    }
+
+    // 将起始节点加入队列
+    minCost[startLayer][startNode] = 0;
+    pq.push({ 0, startLayer, startNode });
+
+    // Dijkstra 主循环
+    while (!pq.empty()) {
+        auto [currentCost, currentLayer, currentNode] = pq.top();
+        pq.pop();
+
+        // 如果当前代价大于已记录的最小代价，跳过
+        if (currentCost &gt; minCost[currentLayer][currentNode]) continue;
+
+        // 遍历当前层的邻接节点
+        for (const auto&amp; edge : graph[currentLayer][currentNode]) {
+            int nextNode = edge.to;
+            int nextCost = currentCost + edge.cost;
+
+            if (nextCost &lt; minCost[currentLayer][nextNode]) {
+                minCost[currentLayer][nextNode] = nextCost;
+                pq.push({ nextCost, currentLayer, nextNode });
+            }
+        }
+
+        // 遍历层间连接
+        if (interLayerCost[currentLayer].count(currentNode)) {
+            for (const auto&amp; [nextLayer, cost] : interLayerCost[currentLayer].at(currentNode)) {
+                int nextCost = currentCost + cost;
+                if (nextCost &lt; minCost[nextLayer][currentNode]) {
+                    minCost[nextLayer][currentNode] = nextCost;
+                    pq.push({ nextCost, nextLayer, currentNode });
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    // 示例输入数据
+    int layers = 240;  // 层数
+    int nodes = 1000;  // 每层的节点数
+
+    // 每层的图结构 (层 -&gt; 节点 -&gt; 边)
+    vector&lt;vector&lt;vector&lt;Edge&gt;&gt;&gt; graph(layers, vector&lt;vector&lt;Edge&gt;&gt;(nodes));
+
+    // 构造每层的边，尽量构造平面图
+    for (int layer = 0; layer &lt; layers; ++layer) {
+        for (int node = 0; node &lt; nodes; ++node) {
+            // 每个节点连接到下一个节点，形成一个环
+            int nextNode = (node + 1) % nodes;
+            graph[layer][node].push_back({ nextNode, rand() % 10 + 1 }); // 随机权重1-10
+
+            // 添加额外的边，确保每层有5000条边以上
+            for (int i = 0; i &lt; 5; ++i) {
+                int randomNode = rand() % nodes;
+                if (randomNode != node) {
+                    graph[layer][node].push_back({ randomNode, rand() % 10 + 1 });
+                }
+            }
+        }
+    }
+
+    // 定义层间连接关系的稀疏存储结构
+    InterLayerConnections interLayerCost(layers);
+
+    // 构造层间连接代价
+    for (int layer = 0; layer &lt; layers - 1; ++layer) {
+        for (int node = 0; node &lt; nodes; ++node) {
+            // 只有三分之一的节点有层间连接
+            if (rand() % 3 == 0) {
+                int cost = rand() % 2000 + 1000; // 随机权重1000-3000
+                interLayerCost[layer][node].push_back({ layer + 1, cost }); // 当前层到下一层
+                interLayerCost[layer + 1][node].push_back({ layer, cost }); // 下一层到当前层
+            }
+        }
+    }
+
+    // 最后一层连接回第一层
+    for (int node = 0; node &lt; nodes; ++node) {
+        if (rand() % 3 == 0) {
+            int lastCost = rand() % 2000 + 1000; // 随机权重10-30
+            interLayerCost[layers - 1][node].push_back({ 0, lastCost }); // 最后一层到第一层
+            interLayerCost[0][node].push_back({ layers - 1, lastCost }); // 第一层到最后一层
+        }
+    }
+
+    // 起始节点和层
+    int startNode = 0;
+    int startLayer = 0;
+
+    // 最小代价数组
+    vector&lt;vector&lt;int&gt;&gt; minCost(layers, vector&lt;int&gt;(nodes, INF));
+
+    // 运行Dijkstra算法
+    auto startTime = chrono::high_resolution_clock::now(); // 开始计时
+
+    dijkstra(startLayer, startNode, graph, interLayerCost, minCost);
+
+    auto endTime = chrono::high_resolution_clock::now(); // 结束计时
+    auto duration = chrono::duration_cast&lt;chrono::milliseconds&gt;(endTime - startTime);
+    cout &lt;&lt; &quot;Total Dijkstra computation time: &quot; &lt;&lt; duration.count() &lt;&lt; &quot; ms&quot; &lt;&lt; endl;
+
+    return 0;
+}
+</code></pre>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/chang-yong-hui-tu-gong-ju/" class="post-title gt-a-link">
+                    常用绘图工具
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/duo-ceng-zui-duan-lu/" class="leancloud_visitors" data-flag-title="多层最短路">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

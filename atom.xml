@@ -1,0 +1,946 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://liushuideng.com</id>
+    <title>木子点灯</title>
+    <updated>2025-05-08T04:45:10.887Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://liushuideng.com"/>
+    <link rel="self" href="https://liushuideng.com/atom.xml"/>
+    <subtitle>愿有岁月可回首，且以追忆共白头</subtitle>
+    <logo>https://liushuideng.com/images/avatar.png</logo>
+    <icon>https://liushuideng.com/favicon.ico</icon>
+    <rights>All rights reserved 2025, 木子点灯</rights>
+    <entry>
+        <title type="html"><![CDATA[多层最短路]]></title>
+        <id>https://liushuideng.com/post/duo-ceng-zui-duan-lu/</id>
+        <link href="https://liushuideng.com/post/duo-ceng-zui-duan-lu/">
+        </link>
+        <updated>2025-05-08T04:11:21.000Z</updated>
+        <content type="html"><![CDATA[<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;limits&gt;
+#include &lt;tuple&gt;
+#include &lt;cstdlib&gt;
+#include &lt;chrono&gt;
+#include &lt;algorithm&gt; // 用于 make_heap, push_heap, pop_heap
+#include &lt;unordered_map&gt;
+
+using namespace std;
+
+// 定义一个常量表示无穷大
+const int INF = numeric_limits&lt;int&gt;::max();
+
+// 定义一个结构体表示图中的边
+struct Edge {
+    int to;     // 目标节点
+    int cost;   // 边的代价
+};
+
+// 自定义二叉堆
+class BinaryHeap {
+public:
+    using Element = tuple&lt;int, int, int&gt;; // (当前代价, 当前层, 当前节点)
+
+    // 插入元素
+    void push(const Element&amp; element) {
+        heap.push_back(element);
+        push_heap(heap.begin(), heap.end(), compare);
+    }
+
+    // 弹出最小元素
+    void pop() {
+        pop_heap(heap.begin(), heap.end(), compare);
+        heap.pop_back();
+    }
+
+    // 获取最小元素
+    Element top() const {
+        return heap.front();
+    }
+
+    // 判断堆是否为空
+    bool empty() const {
+        return heap.empty();
+    }
+
+private:
+    vector&lt;Element&gt; heap;
+
+    // 比较函数，用于实现最小堆
+    static bool compare(const Element&amp; a, const Element&amp; b) {
+        return get&lt;0&gt;(a) &gt; get&lt;0&gt;(b); // 按代价升序排列
+    }
+};
+
+// 修改后的 Dijkstra 算法
+using InterLayerConnections = vector&lt;unordered_map&lt;int, vector&lt;pair&lt;int, int&gt;&gt;&gt;&gt;;
+
+void dijkstra(int startLayer, int startNode, const vector&lt;vector&lt;vector&lt;Edge&gt;&gt;&gt;&amp; graph,
+    const InterLayerConnections&amp; interLayerCost, vector&lt;vector&lt;int&gt;&gt;&amp; minCost) {
+    int layers = graph.size();
+    int nodes = graph[0].size();
+
+    // 自定义二叉堆，存储 (当前代价, 当前层, 当前节点)
+    BinaryHeap pq;
+
+    // 初始化最小代价数组
+    for (int i = 0; i &lt; layers; ++i) {
+        fill(minCost[i].begin(), minCost[i].end(), INF);
+    }
+
+    // 将起始节点加入队列
+    minCost[startLayer][startNode] = 0;
+    pq.push({ 0, startLayer, startNode });
+
+    // Dijkstra 主循环
+    while (!pq.empty()) {
+        auto [currentCost, currentLayer, currentNode] = pq.top();
+        pq.pop();
+
+        // 如果当前代价大于已记录的最小代价，跳过
+        if (currentCost &gt; minCost[currentLayer][currentNode]) continue;
+
+        // 遍历当前层的邻接节点
+        for (const auto&amp; edge : graph[currentLayer][currentNode]) {
+            int nextNode = edge.to;
+            int nextCost = currentCost + edge.cost;
+
+            if (nextCost &lt; minCost[currentLayer][nextNode]) {
+                minCost[currentLayer][nextNode] = nextCost;
+                pq.push({ nextCost, currentLayer, nextNode });
+            }
+        }
+
+        // 遍历层间连接
+        if (interLayerCost[currentLayer].count(currentNode)) {
+            for (const auto&amp; [nextLayer, cost] : interLayerCost[currentLayer].at(currentNode)) {
+                int nextCost = currentCost + cost;
+                if (nextCost &lt; minCost[nextLayer][currentNode]) {
+                    minCost[nextLayer][currentNode] = nextCost;
+                    pq.push({ nextCost, nextLayer, currentNode });
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    // 示例输入数据
+    int layers = 240;  // 层数
+    int nodes = 1000;  // 每层的节点数
+
+    // 每层的图结构 (层 -&gt; 节点 -&gt; 边)
+    vector&lt;vector&lt;vector&lt;Edge&gt;&gt;&gt; graph(layers, vector&lt;vector&lt;Edge&gt;&gt;(nodes));
+
+    // 构造每层的边，尽量构造平面图
+    for (int layer = 0; layer &lt; layers; ++layer) {
+        for (int node = 0; node &lt; nodes; ++node) {
+            // 每个节点连接到下一个节点，形成一个环
+            int nextNode = (node + 1) % nodes;
+            graph[layer][node].push_back({ nextNode, rand() % 10 + 1 }); // 随机权重1-10
+
+            // 添加额外的边，确保每层有5000条边以上
+            for (int i = 0; i &lt; 5; ++i) {
+                int randomNode = rand() % nodes;
+                if (randomNode != node) {
+                    graph[layer][node].push_back({ randomNode, rand() % 10 + 1 });
+                }
+            }
+        }
+    }
+
+    // 定义层间连接关系的稀疏存储结构
+    InterLayerConnections interLayerCost(layers);
+
+    // 构造层间连接代价
+    for (int layer = 0; layer &lt; layers - 1; ++layer) {
+        for (int node = 0; node &lt; nodes; ++node) {
+            // 只有三分之一的节点有层间连接
+            if (rand() % 3 == 0) {
+                int cost = rand() % 2000 + 1000; // 随机权重1000-3000
+                interLayerCost[layer][node].push_back({ layer + 1, cost }); // 当前层到下一层
+                interLayerCost[layer + 1][node].push_back({ layer, cost }); // 下一层到当前层
+            }
+        }
+    }
+
+    // 最后一层连接回第一层
+    for (int node = 0; node &lt; nodes; ++node) {
+        if (rand() % 3 == 0) {
+            int lastCost = rand() % 2000 + 1000; // 随机权重10-30
+            interLayerCost[layers - 1][node].push_back({ 0, lastCost }); // 最后一层到第一层
+            interLayerCost[0][node].push_back({ layers - 1, lastCost }); // 第一层到最后一层
+        }
+    }
+
+    // 起始节点和层
+    int startNode = 0;
+    int startLayer = 0;
+
+    // 最小代价数组
+    vector&lt;vector&lt;int&gt;&gt; minCost(layers, vector&lt;int&gt;(nodes, INF));
+
+    // 运行Dijkstra算法
+    auto startTime = chrono::high_resolution_clock::now(); // 开始计时
+
+    dijkstra(startLayer, startNode, graph, interLayerCost, minCost);
+
+    auto endTime = chrono::high_resolution_clock::now(); // 结束计时
+    auto duration = chrono::duration_cast&lt;chrono::milliseconds&gt;(endTime - startTime);
+    cout &lt;&lt; &quot;Total Dijkstra computation time: &quot; &lt;&lt; duration.count() &lt;&lt; &quot; ms&quot; &lt;&lt; endl;
+
+    return 0;
+}
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[常用绘图工具]]></title>
+        <id>https://liushuideng.com/post/chang-yong-hui-tu-gong-ju/</id>
+        <link href="https://liushuideng.com/post/chang-yong-hui-tu-gong-ju/">
+        </link>
+        <updated>2023-08-31T16:51:30.000Z</updated>
+        <content type="html"><![CDATA[<ol>
+<li>AxGlyph<br>
+<img src="http://image.liushuideng.com/images/blog/202309010051199.PNG" alt="" loading="lazy"></li>
+<li>Fritzing</li>
+</ol>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[python使用百度AI识别表情包文字]]></title>
+        <id>https://liushuideng.com/post/python-shi-yong-bai-du-ai-shi-bie-biao-qing-bao-wen-zi/</id>
+        <link href="https://liushuideng.com/post/python-shi-yong-bai-du-ai-shi-bie-biao-qing-bao-wen-zi/">
+        </link>
+        <updated>2023-08-22T16:13:00.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>从网络上下载表情包，下载的图片名称都是随机的字符串，不利于我们对表情包分类管理，现在我们想利用表情包里的文字命名图片，便于我们搜索和整理，记录下python实现过程。刚写完这篇帖子发现把表情包图片都放在手机里，微信有个自带搜索功能可以搜索图片内的文字，我枯了</p>
+</blockquote>
+<h1 id="实现效果">实现效果</h1>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/202308222214933.PNG" alt="" loading="lazy"></figure>
+<h1 id="背景知识">背景知识</h1>
+<p>识别图像中文字的技术叫OCR，指利用图像光学上的特征进行文字或者图形识别。早期的OCR技术主要是使用图形特征的技巧进行识别的，后来OCR主要由AI算法进行。</p>
+<p>这次的实践搜索了下，python上传统的OCR识别库主要是Tesseract，这个库很早就开发了，主要是使用上不是pip库而是安装文件，需要配置环境变量，而且还担心识别效果泛华不好的问题，所以我选择了另外一种方案就是调用百度AI提供的文字识别接口进行处理。</p>
+<h1 id="方案原理">方案原理</h1>
+<p>百度AI把识别的接口通过SDK提供给我们，所以我们需要做的就非常简单了，直接把文件丢给百度AI，返回识别结果重命名文件就可以了。这里图片识别的模型啥的对我们都是不可见的，我们发动“调包侠”技能就能快速完成这个需求。</p>
+<h1 id="操作步骤">操作步骤</h1>
+<h2 id="注册百度ai账号和应用">注册百度AI账号和应用</h2>
+<p>类似大多数在线平台，需要先注册账号和应用以便百度提供对应的接口的用户ID给你，打开链接：<a href="https://ai.baidu.com/">百度AI</a></p>
+<p>注册账号，登陆，然后点击右上角控制台，然后产品服务里面提供了非常多AI的功能，选择人工智能下面的文字识别</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/python_emoti_baiduai_textrec.png" alt="python_emoti_baiduai_textrec" loading="lazy"></figure>
+<p>选择创建应用，然后填写一下描述即可。然后你会得到一个app id如下图：</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/python_emoti_baiduai_appid.png" alt="" loading="lazy"></figure>
+<p>有了这个ID之后就可以在python脚本里面调用了。</p>
+<h2 id="安装python百度ai工具包">安装python百度AI工具包</h2>
+<pre><code class="language-shell">  pip install baidu-aip
+</code></pre>
+<h2 id="撸代码">撸代码</h2>
+<p>本来是准备用SDK的方式调用的，试了下demo代码没有调通，最后用了web api版本，代码里面指定图片文件夹就可以了，脚本会依次遍历所有的图片并转换。因为图片是从知乎的帖子爬的，所以代码里会有特殊判断去掉知乎相关的字样。因为AI识别稳定性的原因，部分识别不出来的图片可以挑出来多跑几次，基本可以全部识别。</p>
+<pre><code class="language-python"># encoding:utf-8
+import os
+
+from aip import AipOcr
+import re
+
+
+def validateTitle(title):
+    rstr = r&quot;[\/\\\:\*\?\&quot;\&lt;\&gt;\|]&quot;
+    new_title = re.sub(rstr, &quot;_&quot;, title)
+    return new_title
+
+def get_file_content(filePath):
+    with open(filePath, 'rb') as fp:
+        return fp.read()
+
+
+def RecOnePic(client, filePath):
+    image = get_file_content(filePath)
+    &quot;&quot;&quot; 如果有可选参数 &quot;&quot;&quot;
+    options = {}
+    options[&quot;detect_direction&quot;] = &quot;true&quot;
+    options[&quot;detect_language&quot;] = &quot;true&quot;
+
+    &quot;&quot;&quot; 带参数调用通用文字识别, 图片参数为本地图片 &quot;&quot;&quot;
+    msg = client.basicGeneral(image, options)
+    result = ''
+    for item in msg.get('words_result', 'None'):
+        if ('words' in item):
+           if ('知' not in item['words'] and '乎' not in item['words'] and '@' not in item['words']):
+                result += item['words']
+
+        else:
+            result = '无法识别'
+            return
+    if (result != ''):
+        result = validateTitle(result)
+        try:
+            os.rename(os.path.join(filePath), os.path.join(os.path.dirname(filePath), result + &quot;.jpg&quot;))
+            print(result)
+        except IOError:
+            print(&quot;Error: 没有找到文件或读取文件失败&quot;)
+
+'''
+网络图片文字识别
+'''
+def walkFile(file):
+    filePaths = []
+    for root, dirs, files in os.walk(file):
+
+        # root 表示当前正在访问的文件夹路径
+        # dirs 表示该文件夹下的子目录名list
+        # files 表示该文件夹下的文件list
+
+        # 遍历文件
+        for f in files:
+            filePaths.append(os.path.join(root, f))
+
+    return  filePaths
+
+if __name__ == '__main__':
+
+
+    &quot;&quot;&quot; 你的 APPID AK SK &quot;&quot;&quot;
+    APP_ID = '这里填你的APP_ID数字'
+    API_KEY = '这里填你的API_KEY'
+    SECRET_KEY = '这里填你的SECRET_KEY'
+
+    client = AipOcr(APP_ID, API_KEY, SECRET_KEY)
+
+    filePaths = walkFile('D:\\04.Code\\test\\zhihu_pic')
+    for filePath in filePaths:
+        print(filePath)
+        RecOnePic(client, filePath)
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[使用python统计git仓库中频繁修改的热点函数]]></title>
+        <id>https://liushuideng.com/post/shi-yong-python-tong-ji-git-cang-ku-zhong-pin-fan-xiu-gai-de-re-dian-han-shu/</id>
+        <link href="https://liushuideng.com/post/shi-yong-python-tong-ji-git-cang-ku-zhong-pin-fan-xiu-gai-de-re-dian-han-shu/">
+        </link>
+        <updated>2023-08-22T15:32:19.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>本篇博客以开源代码<a href="https://gitee.com/rtthread/rt-thread">RT-Thread</a>为例，描述了如何使用python扫描统计代码中频繁修改的函数，帮助我们发现系统中需求变化和BUG制造的重灾区。</p>
+</blockquote>
+<h2 id="需求背景">需求背景</h2>
+<p>最近在学习设计模式时，印象深刻的一句话就是“要将设计模式应用在不稳定、频繁修改的地方，在变化处应用招式”，那么什么样的地方是频繁变化的？找出变化点最好的办法就是模块或者系统的架构师可以根据经验预测识别出系统的需求热点、发展趋势，指导我们进行重构。但是我想有没有其他办法，统计出我们可能注意不到的潜在变化热点呢？这些函数可能预示着我们的代码质量不佳、频繁出现BUG，或者这块代码需求经常变更，面临剧烈的修改冲击。这样的代码，我们要把它找出来，主动思考进行合理的架构设计来抵御需求变化或者BUG产生。</p>
+<h2 id="关键技术">关键技术</h2>
+<p>要实现上面的功能，我们要摸底下面的几个关键信息能不能搞定：</p>
+<ol>
+<li>代码修改记录，有了修改记录才能统计热点。</li>
+<li>代码修改记录筛选，我们只需要精确到函数级别，精确到某一行代码是否频繁修改没有意义，一般修改不会只改一行。</li>
+<li>自动化统计手段，依靠人工统计是不现实的。</li>
+</ol>
+<p>上面的三个问题，提前尝试了一下解决方法如下：</p>
+<ol>
+<li>
+<p>代码记录自然想到从git获取，git一般查询git log命令获取修改记录，尝试了一下如下：</p>
+<pre><code class="language-c">$ git log
+commit cc2d54ff9fa0b4e958d4a46dacc1106abac9432e (HEAD -&gt; master, origin/master)
+Merge: 31b6533ba f94ffe28e
+Author: Bernard Xiong &lt;bernard.xiong@gmail.com&gt;
+Date:   Thu Jun 27 15:47:17 2019 +0800
+
+    Merge pull request #2781 from jinsheng20/Timer
+
+    增加基础定时器驱动
+
+commit 31b6533baa1d52f070ce43fecaf0183af9ef7299
+Merge: ef6a4aee9 7d0907185
+Author: Bernard Xiong &lt;bernard.xiong@gmail.com&gt;
+Date:   Thu Jun 27 13:49:16 2019 +0800
+
+    Merge pull request #2811 from enkiller/nfs
+
+    [components][dfs][nfs] 修复连接 Linux NFS服务器认证错误的问题
+
+</code></pre>
+<p>可以看到，git log可以看到提交的修改记录，每个修改记录都有一个独一无二的commit id。但是不幸的是，我们并不能从这里面看出具体修改了什么，没关系，使用git show即可，git show commit_id filename还可以指定特定文件。</p>
+<pre><code class="language-c">$ git show 7d0907185837152b918bd4a4b749d453171f6a9f
+commit 7d0907185837152b918bd4a4b749d453171f6a9f
+Author: tangyuxin &lt;462747508@qq.com&gt;
+Date:   Wed Jun 26 11:33:41 2019 +0800
+
+    [components][dfs][nfs] ÐÞ¸´Linux NFS·þÎñÆ÷ÈÏÖ¤ÎÊÌâ
+
+diff --git a/components/dfs/filesystems/nfs/SConscript b/components/dfs/filesystems/nfs/SConscript
+ems/nfs/SConscript
+index 8f1e6defc..f830dfc75 100644
+--- a/components/dfs/filesystems/nfs/SConscript
++++ b/components/dfs/filesystems/nfs/SConscript
+@@ -6,6 +6,8 @@ cwd = GetCurrentDir()
+src = Glob('*.c') + Glob('rpc/*.c')
+CPPPATH = [cwd]
+
++SrcRemove(src, ['rpc/auth_none.c'])
++
+group = DefineGroup('Filesystem', src, depend = ['RT_USING_DFS', 'RT_USING_DFS_NFS'], CPPPATH = CPPPATH)
+
+Return('group')
+diff --git a/components/dfs/filesystems/nfs/dfs_nfs.c b/components/dfs/filesystems/nfs/dfs_nfs.c
+index f36531456..e60f6f98c 100644
+--- a/components/dfs/filesystems/nfs/dfs_nfs.c
++++ b/components/dfs/filesystems/nfs/dfs_nfs.c
+@@ -225,7 +225,7 @@ static nfs_fh3 *get_dir_handle(nfs_filesystem *nfs, const char *name)
+        copy_handle(handle, &amp;nfs-&gt;current_handle);
+    }
+
+-    while ((file = strtok_r(NULL, &quot;/&quot;, &amp;path)) != NULL &amp;&amp; path[0] != 0)
++    while ((file = strtok_r(NULL, &quot;/&quot;, &amp;path)) != NULL &amp;&amp; path &amp;&amp; path[0] != 0)
+
+</code></pre>
+</li>
+<li>
+<p>有了记录之后，我们要从中筛选出我们感兴趣的函数名，准确从文本中识别出函数名个人感觉不是一件容易的事情，函数名字的形式和参数都多变，不过仔细观察上面的比较记录，会发现git自己能够识别出函数名，并专门使用@@标示出来了，如下的void SystemClock_Config(void)函数，我们只需要筛选符合@@的行就可以了。例子里给了一个<code>@@.*@@\s((\w+)\s+)+[\*,&amp;]*\s*(\w+)\s*\(</code>，效果不是特别好，你可以自己根据函数特点修改，修改后可能需要重新改下最后拼接res_str的地方。</p>
+<pre><code class="language-c"> @@ -160,14 +165,14 @@ void SystemClock_Config(void)
+ RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+ -  /**Configure LSE Drive Capability
+ +  /** Configure LSE Drive Capability
+ */
+ HAL_PWR_EnableBkUpAccess();
+ -  /**Configure the main internal regulator output voltage
+ +  /** Configure the main internal regulator output voltage
+ */
+ __HAL_RCC_PWR_CLK_ENABLE();
+ __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+ -  /**Initializes the CPU, AHB and APB busses clocks
+ +  /** Initializes the CPU, AHB and APB busses clocks
+ */
+ RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
+ RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+</code></pre>
+</li>
+<li>
+<p>自动化工具方面这种文本处理的肯定使用python是最快的，git可以使用gitpython库，使用pip install gitpython安装即可，避免使用原生git命令行的繁琐。文本筛选肯定使用正则表达式最方便，可以实现我们想要的功能。</p>
+</li>
+</ol>
+<h2 id="具体脚本">具体脚本</h2>
+<pre><code class="language-python"># -- coding: utf-8 --
+
+# author: tanxiaoyao
+# date:2019.06.29
+import thread
+
+import git
+import re
+import sys
+import threading
+import time
+
+reload(sys)
+sys.setdefaultencoding(&quot;utf-8&quot;)
+
+# 全局变量定义
+thread_num = 10 # 使用的CPU线程数
+commit_num = 1000 # 需要遍历的commit数量
+repo = git.Repo.init(&quot;D:\\02.Code\\02.Reference\\02.OS\\rt-thread&quot;) # 仓库路径，根据自己的实际填写
+folder_path = &quot;.&quot; # 需要扫描的子文件夹路径
+diff_regex = r&quot;@@.*@@\s((\w+)\s+)+[\*,&amp;]*\s*(\w+)\s*\(&quot; # 修改函数名匹配正则表达式，根据自己的需要修改
+max_modified_filenum = 30 # 允许的单次提交修改的最大文件数，排除分支合并的commit
+
+# 正则匹配
+commit_regex = r&quot;commit\s(\w{40})&quot; # commit匹配正则表达式，当前简单匹配40个hash码
+
+
+# 全局线程互斥变量
+fun_dict= {}
+lock = threading.Lock()
+global final_thread_count
+final_thread_count = 0
+
+
+# 获取正则匹配结果
+def get_regex_match(src_str, regex_str):
+    partten = re.compile(regex_str)
+    match = partten.findall(src_str)
+    return match
+
+# 获取小于特定修改文件数的commit，支持多线程
+def get_commit_lessthan(match, thread_id):
+    fo = open(&quot;fo&quot; + str(thread_id) + &quot;.txt&quot;, &quot;w&quot;)
+    ok_list = []
+    count = 0
+
+    # 筛选修改文件数符合要求的commit
+    for commit in match:
+        filelist_str = repo.git.show(commit, stat=True)
+        name_patt = re.compile(commit_regex)
+        name_match = name_patt.findall(filelist_str)
+        if len(name_match) &lt;= max_modified_filenum:
+            ok_list.append(commit)
+
+    # 获取每个commit的具体修改内容
+    for commit in ok_list:
+        if commit is &quot;&quot;:
+            continue
+        diff_str = get_commit_content(commit,&quot;*&quot;)
+        # 从内容中提取修改的函数
+        change_fun_list = get_change_funcs(diff_str)
+        fo.write(diff_str)
+        count += 1
+
+        lock.acquire()
+        try:
+            # 添加到全局数组
+            add_funlist2dict(change_fun_list)
+            print &quot;Thd&quot; + str(thread_id) + &quot;\t&quot; + commit + &quot;_&quot; + str(count) + &quot;/&quot; + str(len(ok_list))
+        finally:
+            lock.release()
+
+    fo.close()
+    global final_thread_count
+    final_thread_count += 1
+
+# 按指定数量拆分数组
+def chunks(l, n):
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+
+# 获取commit列表
+def get_commit_list():
+    log = repo.git.log(folder_path)
+    all_commit = get_regex_match(log, commit_regex)
+    commit_groups = list(chunks(all_commit, commit_num / thread_num))
+    print commit_groups
+
+    # 开始多个线程扫描修改commit，修改函数名
+    try:
+        for index in range(0, min(thread_num, len(commit_groups))):
+            thread.start_new_thread(get_commit_lessthan, (commit_groups[index], index,) )
+    except:
+        print &quot;start thread fail!&quot;
+
+    return
+
+# 获取COMMIT中文件的修改内容
+def get_commit_content(commit_id, file_name):
+    return repo.git.show(commit_id, file_name)
+
+# 提取差异中的函数
+def get_change_funcs(diff_log):
+    return get_regex_match(diff_log, diff_regex)
+
+
+# 将函数加入全局dict
+def add_funlist2dict(list):
+    for fun in list:
+        if fun_dict.has_key(fun):
+            fun_dict[fun] = fun_dict[fun] + 1
+        else:
+            fun_dict[fun] = 1
+
+
+# dict按照value值排序
+def sort_funcdict(dict):
+    items = dict.items()
+    backitems = [[v[1], v[0]] for v in items]
+    backitems.sort(None, None, True)
+    return [[v[1], v[0]] for v in backitems]
+
+
+if __name__ == '__main__':
+    # 开始处理
+    get_commit_list()
+    # 等待所有线程处理完毕
+    while(final_thread_count &lt; thread_num):
+        time.sleep(1)
+
+    # 输出结果
+    resfile = open(&quot;result.txt&quot;, &quot;w&quot;)
+    sorted_list = sort_funcdict(fun_dict)
+    for func_name, times in sorted_list:
+        res_str = &quot; times:&quot; + str(times) + &quot;\t&quot; + func_name[1].strip() + &quot; &quot; + func_name[2].strip() + &quot;\n&quot;
+        resfile.write(res_str)
+    resfile.close()
+</code></pre>
+<h2 id="运行效果">运行效果</h2>
+<p>提示：依赖gitpython库，使用pip install gitpython安装。运行后结果输出在脚本同级目录的result.txt中</p>
+<pre><code class="language-c"> times:77	void SystemClock_Config
+ times:50	if GetDepend
+ times:36	int main
+ times:19	void MX_GPIO_Init
+ times:18	void stm32_dma_config
+ times:18	typedef void
+ times:18	HAL_StatusTypeDef HAL_RCC_OscConfig
+ times:17	void HAL_MspInit
+ times:16	typedef struct
+ times:14	rt_err_t es32f0x_configure
+ times:14	int rt_hw_spi_bus_init
+ times:13	void rt_schedule
+ times:13	void HAL_UART_MspDeInit
+ times:13	void HAL_SMARTCARD_IRQHandler
+ times:13	rt_err_t drv_control
+ times:12	void uart_isr
+ times:12	HAL_StatusTypeDef SMBUS_Slave_ISR
+ times:11	void phy_monitor_thread_entry
+ times:11	void MX_USART1_UART_Init
+ times:11	def PrepareBuilding
+ times:11	HAL_StatusTypeDef HAL_SPI_TransmitReceive
+ times:10	void HAL_UART_MspInit
+ times:10	void HAL_CAN_IRQHandler
+ times:10	rt_err_t rt_sensor_open
+ times:10	rt_err_t rt1052_pin_irq_enable
+</code></pre>
+<p>如果仓库修改记录很多，运行时间会比较长，可以在脚本中限制一下统计次数，运行速度主要消耗在git比较两个commit上。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Fluke45Viewer数据校准工具]]></title>
+        <id>https://liushuideng.com/post/fluke45viewer-shu-ju-xiao-zhun-gong-ju/</id>
+        <link href="https://liushuideng.com/post/fluke45viewer-shu-ju-xiao-zhun-gong-ju/">
+        </link>
+        <updated>2023-07-14T00:25:04.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="需求背景">需求背景</h2>
+<p>Fluke45是一台我之前常用的数字式万用表，平时做东西的过程中经常使用它来帮助我进行数据校准工作。Fluke45精度为四位半，具有两个显示区域，可以同时进行电压电流的测量。在进行设计的过程中，数据校准往往很花费时间，而且一旦进行硬件电路的改动（尤其是采样部分电路的改动），往往意味着数据需要全盘重新校准，为了节省人力和时间，我开发和设计了一个简单的小工具Fluke45Viewer，协助我们进行校准。</p>
+<p><img src="http://image.liushuideng.com/images/blog/fluke45_pic.png" alt="fluke45_pic" loading="lazy"><br>
+我们校准数据一般进行这样的操作，读取自己做的板子液晶屏上的测量数据，再读取万用表的数据，然后抄到EXCEL里面，如此反复。采集到足够多的数据以后进行直线拟合就行了，但是读取、记录数据的这个过程相当繁琐而且很浪费时间，这往往需要两个人的配合，在紧张的竞赛的比赛现场，这是很“奢侈”的浪费，所以如果能够使用工具解决，这样能少浪费很多时间。</p>
+<h2 id="框架设计">框架设计</h2>
+<p>本工具设计的原理就是使用程序代替人去进行数据的读取、记录、计算这三个关键动作。</p>
+<p><strong>数据读取</strong>：单片机方面采用串口对要监视的数据进行读取，万用表后面提供了串口，我们可以从这个地方下手。</p>
+<p><strong>数据记录</strong>：自己在上位机中实现一个简单的界面存储显示数据。</p>
+<p><strong>数据计算</strong>：线性拟合，实现一个简单的最小二乘法计算即可。</p>
+<p>上述三个关键过程的简单流程框图如下：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/fluke45viewer_flow.png" alt="fluke45viewer_flow" loading="lazy"></figure>
+<p>PC和单片机之间有两条路径，一个是直接USB转串口的线连接过去，一个是使用蓝牙模块无线连接。使用无线的目的是我们单片机在控制电力变化这样的板子的时候经常会碰到问题，经常出现主路上的大电压大电流串到单片机上来了，如果直连电脑，可能会烧毁电脑（这是有经验和教训的），所以使用无线方式更安全常见的串口线和蓝牙无线模块如下：</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/adapter.png" alt="adapter" loading="lazy"></figure>
+<h2 id="上位机实现">上位机实现</h2>
+<p>上位机实现有几个要点：1、怎么把万用表的数据读出来？2、读出来了怎么存储、计算3、如何合适的设计单片机的下位机接口，让用户方便快捷的将要监视的数据发送出来。针对以上几点，我们一点点解决：</p>
+<h3 id="万用表读取">万用表读取</h3>
+<p>Fluke45背后提供了一个串口（很多高级的台表后面都有），我们可以通过这个串口把据读取出来，虽然每种表的读取方法不同，但是本文的思想都是通用的，大家按照实际情况发挥。Fluke官方网站很遗憾，翻了一下没找到相关的文档介绍怎么读取，可能在某个维修文档上面有吧，但是很幸运，我们在网上找到了下面这个东西：</p>
+<p>http://www.pudn.com/downloads572/sourcecode/windows/csharp/detail2351554.html</p>
+<p>里面介绍了使用C#读取这个万用表，那我们也可以这样读取。这个工程打开是这样的：</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/project_view.png" alt="project_view" loading="lazy"></figure>
+<p>Devices抽象了Fluke45的核心功能，VirtualInstrument介绍了怎么去使用读取等操作命令，这些该有的就都有了，我们可以开始我们自己的程序设计了。</p>
+<figure data-type="image" tabindex="4"><img src="http://image.liushuideng.com/images/blog/main_frame.png" alt="main_frame" loading="lazy"></figure>
+<p>首先用VS的界面工具拖个简单的框架，然后开始写内部的工具。内部主要责任就是两块：读取万用表数据、读取下位机数据。读取万用表数据这里就不讲了，大致思路就是用C#开串口，按照万用表规定好的格式给它发读取指令，万用表就会吐出一个值。具体方法参照本工具的源码和VirtualInstrument的源码（其实这部分基本都是照抄VirtualInstrument），然后读取下位机我们接下来介绍。</p>
+<h3 id="单片机数据读取">单片机数据读取</h3>
+<p>单片机数据读取的方法怎么读都可以，这里使用串口。串口读取肯定由上位机来发起，我们设计的简单点，假定发送一个C字符是表示上位机要读取数据（为什么是C？那总得是一个值吧，如果C你不喜欢，其他都可以呀。。），然后我们在单片机的代码里设计一个串口中断，收到串口数据数据后判断是不是C，是的话就把监视的数据值通过串口返回出去。以MSP430为例，核心代码如下：</p>
+<pre><code class="language-c">/***************接收字符串*************************/
+char *tempStr;
+char buffer[32] = &quot;&quot;;
+void getStringFVT() {
+	//判断上位机发送的请求验证符（为了加快速度及验证简便，仅用一个c字符验证）
+	if (UCA1RXBUF != 'c') {				
+		*tempStr = UCA1RXBUF;
+		tempStr++;
+	} else {
+		sprintf(buffer, &quot;%lf=&gt;\n&quot;, *monitorData);	//double转string
+		printStringFVT(buffer);
+	}
+}
+</code></pre>
+<p>串口中断这部分根据你使用的单片机不同自行编写，这个应该都不是问题。然后就是数据监视这一块了，这个东西处于简便快捷考虑，我设计了一个Bind函数，用户只需要调用这个函数指定你要监视那个数据就可以了。所以最简单的方法就是：指针直接指向你要看的内存，核心代码如下：</p>
+<pre><code class="language-c">//监视的数据，bind的时候将目标数的指针传过来就可以实现实时跟踪了
+double *monitorData;
+/*****************绑定要监视的数据***************************/
+void bindDataFVT(double *sendData) {
+	monitorData = sendData;
+}
+</code></pre>
+<p>我们适配的代码里自己声明一个指针，然后用户告诉我这个指针指向谁就OK。以后收到上位机指定，我就把指针指向的值发出去，使用方法如下：</p>
+<pre><code class="language-c">int main(void) {
+    WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
+	
+    double testValue = 0.1;
+
+    initFVT();
+    bindDataFVT(&amp;testValue);
+
+    while(1)
+    {
+    	if(testValue &lt; 9999)
+    		testValue += testValue;
+    	else
+    		testValue = 0.1;
+    }
+
+	return 0;
+}
+</code></pre>
+<p>testValue是我要监视的数据，初始化FVT之后，bind一下它的地址就行。通过这个原理可以看到，这个工具使用的限制就是被监视的数据地址不能发生变化（换言之就是全局变量），当然这里的testValue不是全局变量，可以使用的原因是因为这是main程序，内部死循环永远不会退出，是函数的局部变量，申请在栈内存上，函数不退它不会失效，所以这里没失效，大家平时使用最好绑定到一个函数外的全局变量上。</p>
+<h2 id="使用效果及源码下载">使用效果及源码下载</h2>
+<figure data-type="image" tabindex="5"><img src="http://image.liushuideng.com/images/blog/total_view.png" alt="total_view" loading="lazy"></figure>
+<p>目前实现了MSP430和TIVA版本的下位机，其他单片机平台欢迎大家补充：</p>
+<p><a href="https://gitee.com/tanxiaoyao/FLUKE45_VIEWR_RELEASE">源码下载地址</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数字电路基础(6)——CMOS的动态特性]]></title>
+        <id>https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-6-cmos-de-dong-tai-te-xing/</id>
+        <link href="https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-6-cmos-de-dong-tai-te-xing/">
+        </link>
+        <updated>2023-06-11T14:18:43.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>上面的文章介绍完了CMOS门电路的基本构造，但我们分析的时候，给电路的输入信号都是不变的，展示的是门电路在稳定时候的特性，现在我们要把输入信号变成动态变化的信号，观察CMOS电路在动态变化时候的特性。</p>
+<p>另外，本小节涉及到模拟的特性，本来是应该拿着实物的逻辑门芯片搭电路用示波器观察波形的，但正如整个博客的介绍里所说，我这里手边没有仪器和物料，好在TI的TINA仿真软件基于SPICE模型做的非常逼真，可以模拟出CMOS传输特性，所以就全程用仿真演示，有条件的同学可以搭电路出来实测观察。</p>
+</blockquote>
+<h1 id="传输延迟现象">传输延迟现象</h1>
+<p>最常见的变化信号就是方波，我们给反相器电路输入一个方波试试。</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_dyamic_output.png" alt="digit_course_cmos_dyamic_output" loading="lazy"></figure>
+<p>好像没什么问题对吧，输入是红色的50Hz的方波，然后绿色的输出是输入的反相，这个是符合预期的。但是，我们把信号上升或者下降的边缘放大，如下图：</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_dyamic_upper.png" alt="digit_course_cmos_dyamic_upper" loading="lazy"></figure>
+<p>可以看到输出并不是像我们想像的那样，随着输入的下落，立马就跃变到高电平，而是像爬坡一样缓慢上升到高电平，可以看到示波器我调的是50us一格，也就是说它花了大概100us爬升上去，这就是电路中存在的传输延迟现象，也就是指输出信号并不能严格跟随输入信号变化的现象。</p>
+<h2 id="传输延迟的影响">传输延迟的影响</h2>
+<p>我们不先急着搞清楚为什么会有这个鬼问题，先看看他有什么影响，如果影响不严重其实也可以暂时不深究他是为什么。下图是引用自教材《数字电路技术基础》的图：</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_dyamic_inv_amp.png" alt="digit_course_cmos_dyamic_inv_amp" loading="lazy"></figure>
+<p>从上面的图中可以看到，因为传输延迟的存在，导致上下两个CMOS无法严格的一起进行切换，在输入跳变的瞬间产生从VDD到地的通路，电流从上到下流经两个CMOS产生功率消耗，这就是CMOS电路的动态功耗。</p>
+<p>所以，我们就可以很容易的理解，为什么生活中电脑CPU工作频率越高，发热就越大，CPU超频需要使用液氮冷却就是这么来的。</p>
+<h2 id="传输延迟的原因">传输延迟的原因</h2>
+<p>我们理解到传输延迟会造成动态功耗损耗(后面还会介绍会造成竞争-冒险现象，这里先不提)，那这个问题的根本原因是什么呢？其实就是电路中的电容在作怪。</p>
+<p>我们还是看上面的一张图，非门的输出画了一个电容，这个电容包含两部分：</p>
+<ol>
+<li>负载的电容，包括后级CMOS电路或者其他容性负载的电容</li>
+<li>CMOS电路本身的分布电容和杂散电容</li>
+</ol>
+<p>其中第二项我们知道电容的形成条件非常简单，只需要两个隔得足够近的金属就可以形成，CMOS内部也是通过金属走线的，导线之间就会形成微小的分布电容和杂散电容，所以即使CMOS后面的电路没有电容，内部也会有容性存在。即使第二部分的电容一般非常小，但是在CMOS工作频率越高的时候，上述的影响就越明显。</p>
+<p>后续大家如果学习自己画PCB，也会碰到这种问题，在高频PCB(一般超过几十兆赫兹就会体现出来了)上一般要非常注意走线，防止分布与杂散电容对电路产生不利影响。</p>
+<h2 id="传输延迟影响的避免">传输延迟影响的避免</h2>
+<ol>
+<li>减少高频率工作状态</li>
+<li>使用传输延迟更低的CMOS芯片</li>
+<li>合理PCB布局，减少负载电容</li>
+</ol>
+<p>实际使用有些时候不可避免的要使用更高的频率，我们着手更多的是第二点和第三点，比如74HC04芯片传输延迟一般在9ns，而74AHC04只有5ns。合理的PCB布局也是一种很重要的方法，特别是在高频的时候。虽然高频的时候，更多的考虑的是信号完整性的东西，减少杂散电容也是一个考虑之一，有些要求比较高的板子，从两层板切换到4层板也有这个原因。但是由于我自己不擅长硬件，所以这里就不瞎讲了，感兴趣的可以参考其他专业硬件博主的文章。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数字电路基础(5)——CMOS基本电路]]></title>
+        <id>https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-5-cmos-ji-ben-dian-lu/</id>
+        <link href="https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-5-cmos-ji-ben-dian-lu/">
+        </link>
+        <updated>2023-06-10T14:57:17.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>上文《数字电路基础——逻辑门电路》介绍了CMOS门电路的发展历史和基本构造，本节来看CMOS基本电路的种类和特点，以及实际芯片的介绍和选型。</p>
+</blockquote>
+<h1 id="cmos基本电路">CMOS基本电路</h1>
+<p>这一部分在教材上，不仅讲了各种门电路是怎么样的，还讲了很复杂的静态、动态工作状态分析，还有各个工作点电压电流的计算等，个人觉得没有必要写在这里。这下面就讲这么一些东西吧：</p>
+<ul>
+<li>与或非以及与非、或非等基本逻辑门电路的CMOS实现</li>
+<li>以非门为例，介绍逻辑电路中普遍存在的传输延时现象</li>
+<li>学会使用TINA观察逻辑门电路的动态与静态特性</li>
+<li>开漏和推挽输出</li>
+<li>传输门、三态门</li>
+<li>常见CMOS分立元件实物介绍、特点、选型推荐</li>
+</ul>
+<h2 id="cmos逻辑门电路实现">CMOS逻辑门电路实现</h2>
+<p>CMOS逻辑门中，非门是最简单的一种，下面就从非门开始介绍，并且描述怎么去观察数字电路的动态和静态传输特性，数字电路需要关注的问题等。后面几种与非门、或非门什么的，只需要给出电路图，大家按照非门的方法自己就会分析他们的各项特性了。</p>
+<p>一个最简单的CMOS非门(反相器)的电路如下：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_inverter.png" alt="digit_course_cmos_inverter" loading="lazy"></figure>
+<p>红框内是反相器，示波器中红色的是输入，绿色的是输出，输入输出正好是反过来的。反相器仅仅由一个NMOS和一个PMOS组成，当输入是高电平时，下面的NMOS导通而上面的PMOS不导通，所以输出通过NMOS接地为低电平。当输入为低时，下面的NMOS截止而上面的PMOS导通，输出接到高电平为高。</p>
+<p>类似的，与非门的电路图如下：</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_andnot.png" alt="digit_course_cmos_andnot" loading="lazy"></figure>
+<p>红框里面的是与非门，看看示波器里面VF1 VF2输入和输出VF3的关系，是不是就是与非。</p>
+<p>或非门的电路图如下：</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_ornot.png" alt="digit_course_cmos_ornot" loading="lazy"></figure>
+<p>同样，观察示波器输出，可以看出来这是VF1 VF2与VF3是一个或非的关系。</p>
+<h2 id="cmos逻辑门的传输特性">CMOS逻辑门的传输特性</h2>
+<p>首先解释下传输特性是个啥意思，上面的电路图和示波器的波形图，描述的都是静态场景下的逻辑关系，比如给定一个输入，看这个电路的输出是什么。本来作为嵌入式软件的开发来讲，根据这个关系知道怎么写代码去驱动数字电路就够了。但是我们的电路就像CPU里面一样，是在不停运算不停变化的，在输入的信号极快速变化的时候，会因为CMOS的传输特性出现我们意料之外的情况导致电路无法正常工作。所以我个人认为还有有必要描述下这一章，帮助大家深入理解我们代码中配置超高的CPU频率，对电路来说意味着什么。</p>
+<p>那么，我们就开始《数字电路基础(6)——CMOS的动态特性》，告诉你什么是动态特性，怎么观察动态特性。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数字电路基础(4)——逻辑门电路]]></title>
+        <id>https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-4-luo-ji-men-dian-lu/</id>
+        <link href="https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-4-luo-ji-men-dian-lu/">
+        </link>
+        <updated>2023-06-08T13:56:17.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>这一节，我们真正将书本上抽象的东西转换到实际看得见摸得着的电路上，这里我们开始接触半导体电路，为了和模拟电路区分开，我这里将会故意把握以下分寸，弱化模拟部分，突出数字部分，帮助大家理解逻辑门在数字电路中是如何工作，如何组合成复杂逻辑电路的。</p>
+</blockquote>
+<p>首先我们在之前的文章中，根据现实的例子学会了各种基本的逻辑，并可以把它们组合成更复杂的组合逻辑来描述我们生活中存在的各种复杂的逻辑判断场景，麦兜的鱼丸粗面可以随便买我们都能理的清了。但是我们如果要想用电脑帮我们完成这些事情，就需要先把我们基本的或与非逻辑变成电脑可以识别的电路，这就是我们这里说的门电路。</p>
+<h1 id="门电路演进">门电路演进</h1>
+<p>介绍不同阶段形形色色的电路之前，我们首先约定好电压和逻辑值的对应关系，高电压代表逻辑1为真，低电压代表逻辑0为假。我们先不论反逻辑（高电压假低电压真）的情况以及具体多大电压算高，暂且认为有电压就是1就好了，具体的细节，我们后面会慢慢介绍到。</p>
+<h2 id="开关门电路">开关门电路</h2>
+<p>初中物理学习电路时，我们学到的最简单的元件就是开关、导线、电阻等，利用这几个元件，我们就可以组成最简单的门电路，如下图是一个最简单的非门：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/digit_course_sw_res_gate.png" alt="digit_course_sw_res_gate" loading="lazy"></figure>
+<p>输入为高电压控制开关开时，输出被接地拉低，否则为高。那是不是我们的非门就是这样的结构呢？并不是的，这个电路有个缺点是导通的时候，所有的电压均加在电阻R1上，会有<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi><mo>=</mo><mfrac><msup><mi>v</mi><mn>2</mn></msup><mi>R</mi></mfrac></mrow><annotation encoding="application/x-tex">P=\frac{v^2}{R}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.36292em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01792em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913142857142857em;"><span style="top:-2.931em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>的功率耗费掉，虽然一个不多，但是上亿规模之后还是很大的消耗，所以我们可以将它改造成下面这样：</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/digit_course_sw_sw_gate.png" alt="digit_course_sw_sw_gate" loading="lazy"></figure>
+<p>这样两个开关是互补的，一个开的时候一个关，这样既可以实现逻辑又可以保证任何时候，电源和地都不会导通，理论上没有功率消耗。那现实世界中有没有这种电路呢？当然是有的，你用两个开关不就可以搭建出来吗？但是这里存在两个问题：</p>
+<ul>
+<li>一个是体积，两个开关在这，无论你用什么材质，体积肯定小不了，要弄成千上万个集成在一起是不可能了；</li>
+<li>另一个是速度，这样两个开关，你用人工或者机械去控制，都不可能很快，要想达到我们电脑那样每秒钟上GHz的频率，显然也是不可能的。</li>
+</ul>
+<p>那我们现在是怎么做到大规模的门电路的呢？那就是下面的半导体电路。</p>
+<h2 id="半导体二极管门电路">半导体二极管门电路</h2>
+<p>首先介绍下什么是半导体，由于是数字电路部分，所以这里我尽量少讲模拟量部分，各个关键点尽量做到知其有即可。</p>
+<h3 id="半导体">半导体</h3>
+<p>初中物理学过生活中有导体、绝缘体、半导体三种材料，然后老师们简单的说明分类的原因是导体的电子是自由的，所以加电后可以运动形成电流，而绝缘体内部的电子是不自由的，加电也不运动，所以不能形成电流导电；半导体则是介于他们两个中间，电子不那么自由，加电后只能形成极微小的电流。</p>
+<p>参考链接：<a href="https://baike.baidu.com/item/%E5%8D%8A%E5%AF%BC%E4%BD%93">半导体</a></p>
+<h3 id="n型半导体和p型半导体">N型半导体和P型半导体</h3>
+<p>初中部分只介绍到这里，到了高中，化学课的时候，我们会学习到原子结构那一章，最常见的半导体材料是硅（锗运用远小于硅），但是纯净的硅电子太不活跃了，加电只有微乎其微的一点点电流，没办法去用。但是扛不住会折腾的人各种实验，有人发明了掺杂技术，即把硅里面用加热、扩散等高端技术，掺进去一些其他的材料，例如磷，磷原子的最外层比硅原子多一个电子，掺的越多，自由电子就越多，这样就形成了内部以电子居多的N型半导体；反过来，有人往里面掺硼，硼恰好比硅少一个，虽说电子越掺越少，但这样电子空出来的空位置（空穴）越来越多，剩余的电子可以在空穴上更好的移动，也会形成电流，这样就形成了N型半导体。</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/digit_course_np_inside.png" alt="digit_course_np_inside" loading="lazy"></figure>
+<p>参考链接：<br>
+<a href="https://baike.baidu.com/item/N%E5%9E%8B%E5%8D%8A%E5%AF%BC%E4%BD%93">N型半导体</a><br>
+<a href="https://baike.baidu.com/item/P%E5%9E%8B%E5%8D%8A%E5%AF%BC%E4%BD%93">P型半导体</a></p>
+<h3 id="半导体二极管">半导体二极管</h3>
+<p>折腾是无止境的，发现了N型半导体和P型半导体后，又有人把这两个半导体“接在一起”（实际肯定不是接上去的，是在一块硅上一边掺磷一边掺硼实现的），结果发现了一个神奇的事情，这样形成的半导体，在加电压的时候，正着加电流很大，反着加电流很小，也就是说接近理想的单向导通特性了。下面是我们很常见的二极管型号1N4148的电压电流特性仿真图（仿真图基于spice模型模拟的，和实际的电流图是有差别的哦，有条件的建议搭电路测量）</p>
+<figure data-type="image" tabindex="4"><img src="http://image.liushuideng.com/images/blog/digit_course_1n4148_dc.png" alt="digit_course_1n4148_dc" loading="lazy"></figure>
+<p>(使用的软件是TINA-TI，在TI的官网可以<a href="http://www.ti.com.cn/tool/cn/tina-ti">下载</a>)</p>
+<p>这个把大家高兴坏了，因为在此之前从来没有哪个材料拥有这个特性，那这个特性有什么用，怎么把它利用起来呢？还记得之前的开关电路吗？我们那个搞不定的原因就是开关搞不定，那这里你看有个单向导通，正着就通，反着就不通，不正好就像一个开关吗？不过上面的非门不是特别好实现，我们先看下面这个用二极管实现的与门：</p>
+<figure data-type="image" tabindex="5"><img src="http://image.liushuideng.com/images/blog/digit_course_dio_and.png" alt="digit_course_dio_and" loading="lazy"></figure>
+<p>可以看到，这里的二极管就跟开关一样，当INPUT任何一个为0时，正向导通，等同于开关闭合，OUTPUT被短接到地，输出为0；当INPUT必须同时为高时，二极管不导通，OUTPUT和电阻另外一端电源保持一样的高电平，输出为高。这个逻辑就是典型的与逻辑</p>
+<p>OUTPUT = INPUTA &amp;&amp; INPUTB.</p>
+<p>这里实现的与门相对于开关做的有什么好处呢？首先二极管可以做的很小，解决了体积的问题，二是二极管是使用电控制的，不是用手拨动的，解决了需要人控制的难题，最后就是二极管开关可以很快，解决了速度的问题。例如上面的与门在TINA中仿真，输入信号频率达到1MHz的时候，输出依然可以正常的跟随。</p>
+<figure data-type="image" tabindex="6"><img src="http://image.liushuideng.com/images/blog/digit_course_1n4148_osc.png" alt="digit_course_1n4148_osc" loading="lazy"></figure>
+<p>同样的，我们前面学过逻辑运算的基本定律，逻辑公式取反就是把所有的元素都取他们的反，所以与门的对面或门就是图中的二极管方向反过来，然后接电源上拉变成接地下拉即可，如下图：</p>
+<figure data-type="image" tabindex="7"><img src="http://image.liushuideng.com/images/blog/digit_course_dio_or.png" alt="digit_course_dio_or" loading="lazy"></figure>
+<p>这个时候就是OUTPUT = INPUTA || INPUTB.</p>
+<p>这个时候大家思考一个问题，为什么没有非门？怎么用二极管实现非门？</p>
+<p>其实如果用二极管实现非门，需要搭配三极管才容易实现，后面我们会画出这个很复杂的图，远没有这两个这么简单，不过它后面也被更容易实现性能更好的CMOS非门电路替代了，大家只需要理解我们从开关进化到半导体的三大好处就行了。</p>
+<h2 id="cmos半导体门电路">CMOS半导体门电路</h2>
+<p>在说CMOS电路之前先了解一下为什么不用我们上面的二极管电路而要新发明一种CMOS电路呢?上面的二极管不是都有三个很大的优点了吗?</p>
+<figure data-type="image" tabindex="8"><img src="http://image.liushuideng.com/images/blog/digit_course_dio_open_gate.png" alt="digit_course_dio_open_gate" loading="lazy"></figure>
+<p>仔细观察上面的二极管电压电流关系图,测量下它的正向开始有电压的点就会发现,要超过0.7V左右才开始导通,这就是半导体电路的第一个问题</p>
+<p><strong>1、存在正向导通压降,导致高电平的电压在串联的时候逐级下降,最终降到无法使用的程度</strong></p>
+<p>其次，半导体二极管的带负载能力不好，当输出接的负载电阻变化时，输出电压可能被拉低，所以做出来的器件不适合直接驱动负载。（这一点我没有实际试验验证过，有兴趣的可以搜索相关资料，我暂时没有这方面的经验），所以第二点就是：</p>
+<p><strong>2、不适合驱动负载，带负载能力差</strong></p>
+<p>基于上面的两个缺点，我们发明了CMOS电路。</p>
+<h3 id="cmos管常识">CMOS管常识</h3>
+<p>这一小节又要介绍器件工艺了，先说为什么叫CMOS，CMOS全称（Complementary Metal-Oxide-Semiconductor）互补式金属氧化物半导体。先不管互不互补，先看看MOS是啥，通常我们有些人说的MOS管或者MOS FET都是跟二极管一样，是结构如下图（来源于维基百科）的一种东西：</p>
+<figure data-type="image" tabindex="9"><img src="http://image.liushuideng.com/images/blog/digit_course_cmos_struct.png" alt="digit_course_cmos_struct" loading="lazy"></figure>
+<p>看到没，这个结构就比二极管复杂多了，不是搞个N型掺杂P型掺杂就能搞定的，这个里面的工艺如果比较细的介绍就涉及半导体集成电路的工艺了，我到底是搞嵌入式软件的，不专业而且也不是我的初衷，反正就是一块掺杂成的P型衬底（注意是P型衬底而不是纯硅，只不过掺杂浓度较低）上面左右各找一块地方掺杂成高浓度的N型半导体，由于掺杂出来就像一条沟一样，所以俗称沟道，N型的就叫N沟道。</p>
+<p>然后我们就有了两条“水沟”，这两条水沟里，流动的都是我们掺杂出来大量的自由电子。然后我们在沟的中间铺上一层绝缘的二氧化硅(类似沟中间的地上铺一块木板)，然后二氧化硅上面我们铺一个电极(GATE),衬底的下面还有一个电极，不过这个电极一般和源极(SOURCE)连接在一起，如下面图所示：</p>
+<figure data-type="image" tabindex="10"><img src="http://image.liushuideng.com/images/blog/digit_course_mos_basic_circuit.png" alt="digit_course_mos_basic_circuit" loading="lazy"></figure>
+<p>我们想象一下，如果把SOURCE和衬底连接到地，中间的栅极(GATE)连接到正极，那中间的基底内部就会形成从上到下的电场，而电子是带负电的，会逆着电场向上跑，这就像有人踩在沟中间的木板上对着下面的土释放吸星大法，这样就会把地里的水全部吸到木板下面。如果功力足够深厚，会发生什么现象？水会在木板下面越聚越多，这样就会把两个沟的水连接在一起，这个时候，如果有人在漏极(DRAIN)加正电压，就会向往沟里倒水一样，水会很顺畅的从漏极通过中间的水层流到对面的源极，这样就导电了。如果中间的人松开吸星大法，那水就流不过去了，水通不通完全中间的人说了算了。</p>
+<p>中间的人不仅可以控制通不通，如果他的功夫炉火纯青，甚至可以控制水大水小，像下面的图一样：</p>
+<figure data-type="image" tabindex="11"><img src="http://image.liushuideng.com/images/blog/digit_course_mos_workmode.png" alt="digit_course_mos_workmode" loading="lazy"></figure>
+<p>第一个图完全不发力，左右不通；第二幅完全发力，左右畅通；第三点发力控制了下，水只能通很小一点点；最后一幅图则是虽然发力了，但是还是流不过去的。</p>
+<p>这几种工作模式，在现实生活中有对应的用途，举个例子，完全开和完全关用在最常见的逻辑电路中，本文下面的CMOS非门、与门等，就是用这两种状态的CMOS管代替前面的二极管实现的。中间这种半开半关的状态，最简单的一个应用是电子负载，这个剧透一下，后面有时间专门写下怎么做一个简单的电子负载。</p>
+<p>好，有人就对武林上不同功力的人做了统计，不同法力下，这个沟的流水量统计图如下：</p>
+<figure data-type="image" tabindex="12"><img src="http://image.liushuideng.com/images/blog/digit_course_mos_vdsvsid.png" alt="digit_course_mos_vdsvsid" loading="lazy"></figure>
+<p>这个图来源于一个真实的IRF540 MOS管的datasheet，比如有人功力尚浅，加在栅极（GATE）和源极(SOURCE)之间的功力VGS只有4V，不管别人怎么倒水都不通；有人强一点，VGS有5V，倒水的话，可以留过10A的电流，你可以理解为每秒10立方米的水，不过为什么再到更多水流量也不往上涨了呢？因为这个人功力弱，下面形成的管子小，最大也就流这么多水了，加大VGS电压也没用。可以看到VGS从4V 5V 6 V一直到10V，功力越强，电压越大，可以留过的电流就越大。不过这个图没有画完整，如果有人作死一只倒水，甚至用水泵往里面加压，即使中间这个人功力很弱只有4V，但只要倒水的人足够用力，就可以把中间的土冲开，击穿中间的基底，左右直接导通，那这个电流的曲线过了击穿电压的点就会直线上升，就像洪水决堤一样。不过这样之后电流一下子太大，会迅速在MOS管内产生高温，烧坏MOS管，管子也就报废了，不是允许范围内的工作状态，datasheet也就没画，并且在表格里规定了倒水的最大VGS只能100V，中间人也最大只能施加正负20V的功力：</p>
+<figure data-type="image" tabindex="13"><img src="http://image.liushuideng.com/images/blog/digit_course_mos_irf540_maxpara.png" alt="digit_course_mos_irf540_maxpara" loading="lazy"></figure>
+<p>好了，这样一来，NMOS的原理是不是就完全懂了？嗯？什么是NMOS，上面左右掺的两条水沟不是N型的吗？所以就叫NMOS撒。</p>
+<p>有NMOS肯定你会想是不是有PMOS，是的，有！在N型基底上掺出高浓度的P型沟道就是PMOS，如下图：</p>
+<figure data-type="image" tabindex="14"><img src="http://image.liushuideng.com/images/blog/digit_course_pmos_struc.png" alt="digit_course_pmos_struc" loading="lazy"></figure>
+<p>原理类似，两个的区别在于：</p>
+<ol>
+<li>NMOS驱动电压是正电压，PMOS是是负电压，一个吸星大法，一个是龟派气功。</li>
+<li>NMOS载流子是电子，PMOS载流子是空穴，所以一个要正电压一个要负电压。</li>
+</ol>
+<p>不过除了这两种分类，还有一个地方有点区别。有人做的MOS是上面我门介绍的这种，要栅极加电才会导通，叫做增强型；还有人直接作弊，在中间一开始就挖了水沟，默认就是导通的，要想不通还要加个相反的电压，叫做耗尽型。NMOS和PMOS都是这样，所以一共就有下面这四种类型，找了个图总结如下：</p>
+<figure data-type="image" tabindex="15"><img src="http://image.liushuideng.com/images/blog/digit_course_mos_type.png" alt="digit_course_mos_type" loading="lazy"></figure>
+<p>上面的图是电路符号图，以后你们会海量的见到。前面混进来一个JFET，这个是一种类似三极管的晶体管，这里就不讲了，以后放模拟电路介绍。</p>
+<p>上面讲的都是虚的，真家伙长什么样子，下面这样！</p>
+<figure data-type="image" tabindex="16"><img src="http://image.liushuideng.com/images/blog/digit_course_mos_to263.jpg" alt="digit_course_mos_to263" loading="lazy"></figure>
+<p>这些元件，如果你看看电脑主板，绝对可以发现他们。不过这个是功率元件，一个元件就是一个MOS管，可以经过的电流动辄上百安，芯片制造里面也是mos，那个因为经过的电流很小，就是完成电路的开关逻辑，所以就只有纳米大小，这一个大管子的体积可以做出上亿出来，如下面的电镜显微图所示：</p>
+<figure data-type="image" tabindex="17"><img src="http://image.liushuideng.com/images/blog/digit_course_mos_microscope.png" alt="digit_course_mos_microscope" loading="lazy"></figure>
+<p>好，最后回到我们这一小节的标题上来，什么是CMOS？我们介绍了NMOS和PMOS，CMOS的意思就是互补型的MOS，他不是一种PMOS和NMOS外新的类型，而是指同时使用NMOS和PMOS的电路，P和N是互补的，所以叫CMOS。</p>
+<p>为什么CMOS电路后面能够独领风骚呢？因为它不仅解决了上面的两个问题，还有其他很多优点，总的来说如下：</p>
+<ol>
+<li>解决了二极管导通压降0.7V的问题，MOS导通的时候几乎没有压降</li>
+<li>栅极控制的电极，和源极和漏极之间隔着二氧化硅的绝缘层，所以不会消耗电流，功耗低。</li>
+<li>CMOS由于是PMOS和NMOS互补的，所以静态的时候没有电流消耗，只有开关的瞬间会产生漏电，所以CMOS做成的芯片，不工作时的待机电流远小于三极管组成的电路。</li>
+</ol>
+<p>当然，门电路不只CMOS这一种，还有三级管组成的TTL(BJT)电路，甚至将这两种电路结合起来的BiCMOS电路，同时具有两者的优点。不过要讲明白TTL电路，需要弄清楚三极管的模拟特性，什么静态工作点，算电流放大倍数啥的，个人认为把它放在数字电路不合适，这里就不介绍了，简单理解就是TTL在模拟电路设计的时候，在模拟特性、电流驱动能力要优于CMOS电路，那些论坛上HIFI音响发烧友，TTL电路就玩的溜，有兴趣的可以看下他们的帖子，我们这边，关注CMOS就可以了。</p>
+<p>下一章，《数字电路基础(5)——CMOS基本电路》。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数字电路基础(3)——逻辑运算]]></title>
+        <id>https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-3-luo-ji-yun-suan/</id>
+        <link href="https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-3-luo-ji-yun-suan/">
+        </link>
+        <updated>2023-06-07T13:18:19.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>上一节我们教识数了，这一节我们怎么也得来个1+1吧？</p>
+</blockquote>
+<p>别慌，这一节我们不是给你讲二进制的1b+1b=10b这种东西，这个你上节就能自己悟出来了，这里炒现饭的话就太无聊了，我这里要说的是如果你是麦兜，你要买粗面，必须还得加鱼丸，老板却告诉你有粗面没有鱼丸，你要不要买的问题。</p>
+<h1 id="几种基本逻辑运算">几种基本逻辑运算</h1>
+<p>上面麦兜的答案，你是不是一下子就知道买不了，这就是生活中最简单的一种逻辑运算，你肯定还碰到下面这几种场景：</p>
+<ul>
+<li>麦兜买面，必须要粗面和鱼丸</li>
+<li>麦兜买面，有鱼丸或者粗面都行</li>
+<li>麦兜买面，就是不能放香菜，鱼不鱼丸，粗不粗面的无所谓了</li>
+</ul>
+<p>上面这三种场景，对应的就是与运算，A和B必须同时成立才为真，否则为假；或运算，只要A或者B只成立一个即可；非运算，只要A不为真就行。教科书上，喜欢给各种东西用符号来表示并发明一个运算式表示，所以上面的三种运算，书上写的运算是这样的：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/digit_course_basic_logic_calc.png" alt="digit_course_basic_logic_calc" loading="lazy"></figure>
+<p>而我,是一个程序员,C语言中，这三种逻辑运算的写法是这样的：</p>
+<pre><code>Y = A &amp;&amp; B  // 与
+Y = A || B  // 或
+Y = !A      // 非
+</code></pre>
+<p>emm，只能说各有各的剧本，各有各的唱法吧。不过作为硬件工程师，还有下面的电路图描述方法，后面我们在单片机的内部框图中，将海量的见到它们：</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/digit_course_basic_logic_gate.png" alt="digit_course_basic_logic_gate" loading="lazy"></figure>
+<p>当然，他们仨只是最基本的三种逻辑符号，我们还可以灵活组合他们，就形成了更多更复杂的门电路，例如：与非门、或非门、异或门、同或门</p>
+<figure data-type="image" tabindex="3"><img src="http://image.liushuideng.com/images/blog/digit_course_basic_more_gate.png" alt="digit_course_basic_more_gate.png" loading="lazy"></figure>
+<p>与非门就是与门后面再叠加一个非门，在逻辑上也就是他们俩的叠加，先与然后取反。或非门同理。重点说的是XOR异或门和XNOR同或门。异或是指两个输入相同时，输出为0，两个不一样时，输出为1，所以叫“异”或，同或则恰好相反，相同的是1，不相同的是0，所以英文名中也加了个N，变成XNOR。</p>
+<h1 id="几种基本的逻辑公式">几种基本的逻辑公式</h1>
+<p>教科书上，逻辑公式列了十八种，其中有几个我认为是常识，大家靠猜可以理解出来我就不写了，我写几种写代码或者设计电路时常见的公式如下：</p>
+<ul>
+<li>A &amp;&amp; (B || C) = (A &amp;&amp; B) || (A &amp;&amp; C)</li>
+<li>!(A&amp;&amp;B) = (!A) || (!B)</li>
+<li>A || B &amp;&amp; C = (A || B) &amp;&amp; (A || C)</li>
+<li>!(A || B) = (!A) &amp;&amp; (!B)</li>
+</ul>
+<p>利用这些基本公式，可以推出下面的常用公式，这部分公式可以把复杂的式子化简，减少我们代码和电路的设计工作量，是一种化繁为简的好东西：</p>
+<ul>
+<li>A || A &amp;&amp; B = A</li>
+<li>A || !A &amp;&amp; B = A || B</li>
+<li>A &amp;&amp; B || A &amp;&amp; !B = A</li>
+<li>A &amp;&amp; (A || B) = A</li>
+<li>A &amp;&amp; !(A &amp;&amp; B) = A &amp;&amp; !B</li>
+<li>!A &amp;&amp; !(A &amp;&amp; B) = !A</li>
+</ul>
+<p>这些公式，我也不知道如何简洁的描述并记忆它们，理解上，如果将A和B分别换成鱼丸和粗面，也是很容易理解的。更多的时候，我在使用这些东西时，也是靠着自己的常识和理解去化简逻辑算式，好在平时并没有碰到很长的公式去化简。</p>
+<h1 id="逻辑运算的几个定理">逻辑运算的几个定理</h1>
+<ul>
+<li>算式中的A和B，可以用任何东西替换，逻辑都是成立的，可以用C替代，也可以用一个式子例如（C || D &amp;&amp; E）替代。</li>
+<li>逻辑运算中，将等式左右所有的东西都取反，式子还是成立的。A换!A,B换!B，||换&amp;&amp;，&amp;&amp;换||，例如Y = A &amp;&amp; B可以转换为!Y = !A || !B</li>
+</ul>
+<p>这个例子的理解和记忆，也是靠多写代码，多碰到需要逻辑判断的情况，熟能生巧吧。</p>
+<h1 id="逻辑运算式的化简">逻辑运算式的化简</h1>
+<p>逻辑运算式有公式法化简、卡诺图法化简、Q-M法化简，这三种我也没办法一下很浅显的弄懂，个人认为最后一种是可以使用代码实现的，化简思路清晰，有步骤可循，需要研究的同学自己参考下相关的资料吧，这里不做赘述。</p>
+<hr>
+<p>下一章《数字电路基础(4)——逻辑门电路》，我们由抽象走向具体，开始看看我们这些逻辑在电路上的具体实现载体——门电路，看看实际上看得见摸得着的逻辑门是什么样子的。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数字电路基础(2)——数的进制]]></title>
+        <id>https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-2-shu-de-jin-zhi/</id>
+        <link href="https://liushuideng.com/post/shu-zi-dian-lu-ji-chu-2-shu-de-jin-zhi/">
+        </link>
+        <updated>2023-06-06T15:14:05.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>本章描述我们如何从10进制的认知模式变成在2进制、16进制任意切换的模式，顺便介绍下补码等不常用的进制知识。</p>
+</blockquote>
+<h1 id="几种进制介绍">几种进制介绍</h1>
+<ul>
+<li>
+<p>十进制<br>
+太简单了，不说了</p>
+</li>
+<li>
+<p>二进制<br>
+有人说二进制就是0101这种只有0和1的东西，但是要完全讲清楚还是要做一系列对比的，比如十进制我们从0数到9十个数，再往后就要进位了，从一位数变成两位数10，1是高位，代表1个10，再加上0是十，所以这种十个数进一位，一个高位代表10的叫做十进制，我们平时都太习惯了，所以都没意识到这些东西。同样的道理，二进制就是两个数0、1就要进位，而10的高位1只代表2，加上低位0也只表示二的这种进制，就叫做二进制。我这样讲你懂了吗？0101b表示5。<br>
+为什么要有二进制呢？因为我们技术不行，做出来的硅晶体只能表达出0和1两种状态，如果有一天我们技术牛了，一个元件可以表示出稳定的十六种状态，那我们的电路要换代了，变成十六进制的了-&gt;_-&gt;（事实上，SSD行业正在经历这一变化）</p>
+</li>
+<li>
+<p>十六进制<br>
+我个人喜欢举一反三，那16进制啥意思你能自己推出来不？不会？看看上面一段，0到。。呃9往后怎么表示，10 11吗？这样就变成两位数了，不行，那我们用A B C D表示吧，那就是0到E一共16个数才进位，高位1表示16个的进制。0x11或者11h表示17。<br>
+为什么有十六进制啊？因为我们觉得二进制太长了，写代码也好，写文章也好很不方便，比如二进制11010100010101011101010100011011用十六进制表示才0xD455D51B这么短，神奇不？</p>
+</li>
+<li>
+<p>八进制<br>
+同上，就说下写法是后面带个o，比如11o表示9</p>
+</li>
+</ul>
+<h1 id="进制的转换">进制的转换</h1>
+<p>进制的转换一般就是十进制转某个进制或者某个进制转十进制，很少非十进制之间互转的。二进制转换的诀窍如下：<br>
+1111  对应的每位1分别代表十进制的 8 4 2 1，记住这四个数字二进制随便转，比如1011 是 8 + 2 + 1 = 11</p>
+<p>十六进制在转换上没什么诀窍，唯一需要训练熟练的就是随便给出A~E中的一个字母，你能瞬间反应出来它是几：<br>
+A-10 B-11 C-12 D-13 E-14 F-15,至于数字的转换，因为十六进制比较大，我也做不到口算，比如0xfeac是多少，我口算是算不出来的，不过，我有个任何教科书都不会讲的终极大绝招，那就是：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/digit_course_decimal_calc.png" alt="digit_course_decimal_calc" loading="lazy"></figure>
+<p>他就是我们windows自带的计算器，在开始菜单输入计算器调出，点击查看-程序员，就可以切换到这个模式，选择左边的进制按钮，输入你要转换的数字，然后点击切到另一个进制，计算器会帮你完成计算，有了它你就可以无往不胜，所向披靡。</p>
+<p>什么？你说这种不用笔算的是没有灵魂的？快忘了你考试的那一套吧，现在写个代码谁还没有电脑来着。</p>
+<h1 id="其他不常用知识">其他不常用知识</h1>
+<p>不常用就是说不常用，就是说你不看也可以，用到了临时Google就行，比如：补码、反码、补码运算，它们是为了在设计CPU的时候简化电路的目的设计的，你不涉及这么底层可能永远都遇不到。</p>
+<p>那补码和反码是什么呢？</p>
+<p>我都说不常用了你还指望我讲？其实我也不会！</p>
+<hr>
+<p>那接下来，我们抓紧进入下一节：《数字电路基础(3)——逻辑运算》，你得知道1+1等于几？</p>
+]]></content>
+    </entry>
+</feed>

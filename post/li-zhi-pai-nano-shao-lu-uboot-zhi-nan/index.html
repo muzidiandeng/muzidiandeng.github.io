@@ -1,0 +1,252 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>荔枝派Nano烧录Uboot指南 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    荔枝派Nano烧录Uboot指南
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-05-25 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-di-ruan-kai-fa-linux-lichee/" class="post-tags">
+                            # 嵌入式-底软开发-Linux-lichee
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>荔枝派Uboot编译好之后，下载基本按照教程，但是还是碰到了不少问题官方教程没提到的。</p>
+<ol>
+<li>
+<p>首先教程竟然没说下载要用数据线直接连接下载，并且先要在连接串口线擦除先SPI Flash，我研究了好久才整清楚。</p>
+</li>
+<li>
+<p>如果按照教程操作，首先碰到USB连接开发板之后，输入<code>sunxi-fel uboot u-boot-sunxi-with-spl.bin</code>报错<code>ERROR: Allwinner USB FEL device not found!</code>，这个时候短接Flash芯片的CS脚(1脚)到GND重新上电启动可以进入FEL模式，或者擦除Flash也行，操作如下：</p>
+<ol>
+<li>
+<p>串口连接开发板上电，波特率115200，出现如下<code>Hit any key to stop autoboot</code>时，敲回车终止启动</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/image-20210418124317112.png" alt="image-20210418124317112" loading="lazy"></figure>
+</li>
+<li>
+<p>命令擦除flash</p>
+<pre><code class="language-bash">sf probe 0
+sf erase 0 0x100000
+reset
+</code></pre>
+</li>
+<li>
+<p>然后重新插拔下USB线，注意这里有个坑，如果开发板上插了TF卡，一定要先拔下来，否则没有反应。插上后，lsusb命令看到<code>Onda (unverified) V972 tablet in flashing mode</code>字样说明USB连接没问题。</p>
+<pre><code class="language-shell">txy@ubuntu:~/nano/u-boot$ lsusb
+Bus 002 Device 002: ID 8087:0020 Intel Corp. Integrated Rate Matching Hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 006: ID 17ef:4816 Lenovo Integrated Webcam
+Bus 001 Device 005: ID 0a5c:217f Broadcom Corp. BCM2045B (BDC-2.1)
+Bus 001 Device 027: ID 0925:3881 Lakeview Research Saleae Logic
+Bus 001 Device 036: ID 0451:f432 Texas Instruments, Inc. eZ430 Development Tool
+Bus 001 Device 038: ID 1f3a:efe8 Onda (unverified) V972 tablet in flashing mode
+Bus 001 Device 011: ID 05e3:0610 Genesys Logic, Inc. 4-port hub
+Bus 001 Device 002: ID 8087:0020 Intel Corp. Integrated Rate Matching Hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+</code></pre>
+</li>
+<li>
+<p>然后下载工具可以识别即可</p>
+<pre><code class="language-shell">txy@ubuntu:~/nano/u-boot$ sudo sunxi-fel ver
+AWUSBFEX soc=00001663(F1C100s) 00000001 ver=0001 44 08 scratchpad=00007e00 00000000 00000000
+</code></pre>
+<p>OK，烧录完成</p>
+<pre><code class="language-shell">txy@ubuntu:~/nano/u-boot$ sudo sunxi-fel -p spiflash-write 0 u-boot-sunxi-with-spl.bin
+100% [================================================]  1008 kB,   98.6 kB/s
+</code></pre>
+</li>
+<li>
+<p>重新插拔USB线启动，结果报错如下：</p>
+<pre><code class="language-shell">SF: unrecognized JEDEC id bytes: 0b, 40, 18                                     
+*** Warning - spi_flash_probe_bus_cs() failed, using default environment        
+</code></pre>
+<p>这个问题再另起一个帖子记录吧</p>
+</li>
+</ol>
+</li>
+</ol>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/li-zhi-pai-nano-bian-yi-uboot-zhi-nan/" class="post-title gt-a-link">
+                    荔枝派Nano编译Uboot指南
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/li-zhi-pai-nano-shao-lu-uboot-zhi-nan/" class="leancloud_visitors" data-flag-title="荔枝派Nano烧录Uboot指南">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

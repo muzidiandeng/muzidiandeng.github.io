@@ -1,0 +1,244 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>MSP430介绍 | 木子点灯</title>
+
+<link rel="shortcut icon" href="https://liushuideng.com/favicon.ico?v=1746679507660">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liushuideng.com/styles/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script>
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            木子点灯
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+                <div class="nav-item">
+                    
+                        <a href="/" class="menu gt-a-link">
+                            首页
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/archives" class="menu gt-a-link">
+                            归档
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/tags" class="menu gt-a-link">
+                            标签
+                        </a>
+                    
+                </div>
+            
+                <div class="nav-item">
+                    
+                        <a href="/post/about" class="menu gt-a-link">
+                            关于
+                        </a>
+                    
+                </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1746679507660" action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    MSP430介绍
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-05-23 ·
+                    </time>
+                    
+                        <a href="https://liushuideng.com/tag/qian-ru-shi-di-ruan-kai-fa-dan-pian-ji-msp430/" class="post-tags">
+                            # 嵌入式-底软开发-单片机-MSP430
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <blockquote>
+<p>本文主要介绍一下MSP430系列的单片机的特性以及优缺点，快速了解我写的这些博客是在讲个什么东东</p>
+</blockquote>
+<p>请参照万能的TI<a href="http://www.ti.com.cn">官网</a>,在<a href="http://www.ti.com.cn/zh-cn/microcontrollers/overview.html">微控制器栏目</a>,你可以看到下面的分类介绍：</p>
+<figure data-type="image" tabindex="1"><img src="http://image.liushuideng.com/images/blog/mcu_overview.png" alt="mcu_overview" loading="lazy"></figure>
+<p>可以看到TI的MCU分为这么几大类：</p>
+<ul>
+<li><strong>低功耗MCU</strong>——主要用于要求耗电低、长期待机的场合，比如24小时运行的环境监测器、电表，可穿戴设备等。</li>
+<li><strong>低功耗ARM</strong>——解决430不能兼顾有些又要低功耗又要一定的运算性能的场景，比如智能家居的某些传感、网关设备等。</li>
+<li><strong>电机控制MCU</strong>——主要是C2000系列，解决电机步进、快速闭环控制等工业场景，主要用于简单的电机控制场景。</li>
+<li><strong>数字电源MCU</strong>——分为UCD系列专用电源芯片和部分C2000，在数字开关电源要求高精度PWM控制、驱动MOS等场景使用。</li>
+<li><strong>无线MCU</strong>——官网讲CC2XXX、CC3XXX、MSP432归在其中，2XXX主要是低功耗蓝牙（BLE），3XXX主要是WIFI场景，这些芯片内部其实都是嵌入了一个51内核，方便实现一些简单的控制和通信协议。MSP432归入其中可能是想作为物联网的网关使用，具体没有了解过，有兴趣的可以深究。</li>
+<li><strong>电容触摸MCU</strong>——主要是利用的430单片机管脚感知触控的功能，很多型号都有，具体的原理和使用后面有空可以专门整理下</li>
+<li><strong>无线主机MCU</strong>——就是前面的MSP432</li>
+<li><strong>安全MCU</strong>——看介绍主要是用于高可靠性、高安全认证要求的工业级场景，例如机械控制、网络信令传输等，实在没接触过不多讲。</li>
+</ul>
+<p>上面这么多系列，其实我只接触过低功耗的430与TIVA C系列，我们可以根据实际的使用需求选择合适的芯片，熟悉一个之后同类别的上手基本不会有障碍。</p>
+<p>回到MSP430，它最大的特点其实就是低功耗，甚至官方有视频使用橙子、土豆等原电池带动430。在功耗要求特别严格的场景下，使用430并合理设置低功耗工作模式可以达到长期工作的要求。</p>
+<figure data-type="image" tabindex="2"><img src="http://image.liushuideng.com/images/blog/430_overview.png" alt="430_overview" loading="lazy"></figure>
+<p>MSP430具体有功能特性需要具体到某一款芯片型号，不同的子系列之间的计算能力、功耗、外设数量都有区别。这个系列的博客主要用官方入门最常用的2553做例子，网络上的资源也相对容易寻找（另一个好找的是F149,主要是淘宝上很多出套件的）。看看MSP430G2553的特性：</p>
+<blockquote>
+<p>还是推荐看下<a href="http://www.ti.com.cn/product/cn/MSP430G2553/description">官网介绍</a></p>
+</blockquote>
+<figure data-type="image" tabindex="3"><img src="http://www.ti.com/graphics/folders/partimages/MSP430G2553.jpg" alt="" loading="lazy"></figure>
+<p><strong>特性</strong></p>
+<ul>
+<li>低电源电压范围：1.8V 至 3.6V</li>
+<li>超低功耗<br>
+运行模式：230μA（在 1MHz 频率和 2.2V 电压条件下）<br>
+待机模式：0.5μA<br>
+关闭模式（RAM 保持）：0.1μA</li>
+<li>5 种节能模式</li>
+<li>可在不到 1μs 的时间里超快速地从待机模式唤醒</li>
+<li>两个 16 位 Timer_A，分别具有三个捕获/比较寄存器</li>
+<li>多达 24 个支持触摸感测的 I/O 引脚</li>
+<li>USCI\UART\SPI\I2C</li>
+<li>用于模拟信号比较功能或者斜率模数 (A/D) 转换的片载比较器</li>
+<li>带有内部基准、采样与保持以及自动扫描功能的 10 位 200ksps 模数 (A/D) 转换器</li>
+</ul>
+<p><strong>超低功耗</strong><br>
+低功耗是430最大亮点不多啰嗦，运行模式也只有230uA，当然限制了1MHz的运行速率，如果满速跑没有这么低功耗。有些场景我们的机器其实大部分都在待机，等待定时采样一下或者外部传感器变化了出发采集，那么待机模式能做到0.5uA，这个时候其实部分外设是不工作了，是与运行模式的主要差别。如果有些仪器甚至不会周期性工作，必须等待用户操作了之后才进行工作，那平时进入关闭模式做到0.1uA就很小很小了，可能耗电速度赶不上电池自放电的速度了。上面的这些模式需要我们用的时候根据场景灵活安排，如果上来就最好频率甚至超频运行，使能不需要的管脚输出以及外设，想做到超低功耗也是很难的。</p>
+<p><strong>快速唤醒</strong><br>
+MSP430唤醒时间不到1us，对使用的实时性影响较小。</p>
+<p><strong>各种外设</strong><br>
+这里总的来说，在2553上就有16位比较器（位长越长可设置的定时时间越长），IO引脚触摸功能，UART、SPI、I2C等常见串行通信接口、10位200K采样率ADC（精度不高但简单场景够用了）</p>
+<p>上面的就是MSP430的基本情况，具体怎么用它们做些好玩的东西我们后面慢慢介绍。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://liushuideng.com/post/armfpgadsppcbplc-gong-zuo-gai-zen-me-xuan/" class="post-title gt-a-link">
+                    ARM、FPGA、DSP、PCB、PLC工作该怎么选
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/msp430-jie-shao/" class="leancloud_visitors" data-flag-title="MSP430介绍">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'ydX1if1E2WcFgcYuQw2P6hdk-gzGzoHsz',
+		appKey: 'w7E5AsqiQhYljvsh4tNRfXOa',
+		avatar: 'wavatar',
+		pageSize: 10,
+		recordIp: false,
+		placeholder: '在这里留下你的评论吧~',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">愿有岁月可回首，且以追忆共白头</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/tanxiaoyao" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+                <a href="https://www.zhihu.com/people/tan-xiao-yao-39" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Copyright @ <a href="liushuideng.com" target="_blank">木子点灯</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://liushuideng.com/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>
